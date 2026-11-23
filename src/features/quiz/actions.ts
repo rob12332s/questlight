@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { DIFFICULTIES } from "@/domain/types";
@@ -122,8 +121,10 @@ export async function completeQuiz(sessionId: string): Promise<QuizSummary | { o
     xp: { correct_answers: number; completion: number; perfect: number; personal_best: number; capped: number; total: number };
     new_achievements: string[];
   };
-  revalidatePath("/dashboard");
-  revalidatePath("/learn");
+  // No revalidatePath here: revalidating from a server action also refreshes the
+  // current page, which would swap the live results screen (with its XP breakdown
+  // and achievements) for the history view. The dashboard and Learn pages are
+  // dynamic, so they always read fresh data anyway.
   return {
     ok: true,
     answered: r.answered,

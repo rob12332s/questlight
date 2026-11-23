@@ -81,9 +81,11 @@ test("a student signs up, studies, and their data stays private", async ({ brows
     } else {
       await page.getByRole("group", { name: "Answer options" }).getByRole("button").first().click();
     }
-    // Feedback comes from the server, then we move on.
-    await expect(page.getByText(/^(Correct|Not quite)/).first()).toBeVisible();
-    await page.getByRole("button", { name: i < 5 ? "Next question" : "See results" }).click();
+    // The server checks the answer; only then does the Next button appear.
+    const next = page.getByRole("button", { name: i < 5 ? "Next question" : "See results" });
+    await expect(next).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByRole("alert")).toHaveCount(0);
+    await next.click();
   }
   await expect(page.getByRole("heading", { name: "Cell biology: results" })).toBeVisible();
   await expect(page.getByText("XP earned")).toBeVisible();
