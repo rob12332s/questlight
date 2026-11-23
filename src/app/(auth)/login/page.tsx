@@ -21,7 +21,7 @@ export default async function LogInPage({
   const notice = Object.keys(NOTICES).find((key) => params[key] !== undefined);
   const authError =
     params.error === "link"
-      ? { tone: "error" as const, text: "That link has expired or was already used. Log in, or sign up again." }
+      ? { tone: "error" as const, text: "We couldn't finish signing you in from that link. If you've just confirmed your email, log in below. Opening the link in a different browser can cause this." }
       : undefined;
 
   return (
