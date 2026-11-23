@@ -69,10 +69,14 @@ test("a student signs up, studies, and their data stays private", async ({ brows
   await expect(page).toHaveURL(/\/quizzes\/[0-9a-f-]{36}$/);
   const quizUrl = page.url();
 
+  let previousCard: string | null = null;
   for (let i = 1; i <= 5; i++) {
     await expect(page.getByText(`Question ${i} of 5`)).toBeVisible();
     // Wait for the previous card's exit animation, so we answer the new question.
-    await expect(page.locator('section[aria-labelledby^="q-"]')).toHaveCount(1);
+    const card = page.locator('section[aria-labelledby^="q-"]');
+    await expect(card).toHaveCount(1);
+    if (previousCard) await expect(card).not.toHaveAttribute("aria-labelledby", previousCard);
+    previousCard = await card.getAttribute("aria-labelledby");
     await expect(page.getByText(/^(Correct|Not quite)/)).toHaveCount(0);
     const textbox = page.getByPlaceholder("Type your answer");
     if (await textbox.isVisible()) {
