@@ -24,18 +24,18 @@ export const FEATURES: FeatureEntry[] = [
       "Answers are checked on the server and never sent to your browser early",
       "Review everything you got wrong at the end",
     ],
-    status: "in_development",
+    status: "available",
   },
   {
     id: "flashcards",
     name: "Flashcards",
-    summary: "Make your own decks or generate them, then review with spaced repetition.",
+    summary: "Make your own decks, then review them with spaced repetition. AI-generated decks are planned.",
     details: [
       "Rate each card: needs practice, learning or confident",
       "Cards you struggle with come back sooner",
       "Flipping a card isn't counted as knowing it; only your rating is",
     ],
-    status: "in_development",
+    status: "available",
   },
   {
     id: "live-games",
@@ -57,7 +57,7 @@ export const FEATURES: FeatureEntry[] = [
       "No recommendation until you've answered enough questions on a topic",
       "Suggestions to revisit topics after a sensible gap",
     ],
-    status: "planned",
+    status: "available",
   },
   {
     id: "ai-study",
@@ -84,12 +84,19 @@ export const FEATURES: FeatureEntry[] = [
   {
     id: "progression",
     name: "XP, levels and achievements",
-    summary: "Rewards for learning, not for time spent. XP is calculated on the server and can't be farmed by repetition.",
+    summary: "Rewards for learning, not for time spent. XP is calculated on the server and can't be farmed by repeating the same questions.",
     details: [
-      "Daily goals and learning streaks",
+      "Learning streaks on UK calendar days",
       "Personal bests per topic",
-      "Optional leaderboards, using display names only",
+      "A daily XP limit for solo practice",
     ],
+    status: "available",
+  },
+  {
+    id: "leaderboards",
+    name: "Leaderboards",
+    summary: "Weekly and all-time rankings by display name, with a switch to stay off them.",
+    details: ["Display names only, never real names", "Opt out at any time in settings", "Friends and class boards"],
     status: "planned",
   },
 ];

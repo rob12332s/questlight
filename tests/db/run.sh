@@ -25,9 +25,9 @@ trap cleanup EXIT
 "${RUN_AS[@]}" "$PG_BIN/initdb" -D "$WORK/data" -U postgres --auth=trust >/dev/null
 "${RUN_AS[@]}" "$PG_BIN/pg_ctl" -D "$WORK/data" -o "-p $PORT -k $WORK -c listen_addresses=''" -l "$WORK/pg.log" -w start >/dev/null
 
-PSQL=("$PG_BIN/psql" -h "$WORK" -p "$PORT" -U postgres -v ON_ERROR_STOP=1 -X -q)
-"${PSQL[@]}" -d postgres -c "create database questlight_test"
-PSQL+=(-d questlight_test)
+PSQL_BASE=("$PG_BIN/psql" -h "$WORK" -p "$PORT" -U postgres -v ON_ERROR_STOP=1 -X -q)
+"${PSQL_BASE[@]}" -d postgres -c "create database questlight_base"
+PSQL=("${PSQL_BASE[@]}" -d questlight_base)
 
 echo "→ Supabase stub"
 "${PSQL[@]}" -f "$ROOT/tests/db/supabase_stub.sql"
@@ -40,10 +40,14 @@ done
 echo "→ test helpers"
 "${PSQL[@]}" -f "$ROOT/tests/db/helpers.sql"
 
+# Each test file gets a fresh copy of the migrated database, so files can't affect each other.
 status=0
+n=0
 for test in "$ROOT"/tests/db/*.test.sql; do
+  n=$((n + 1))
   echo "→ $(basename "$test")"
-  if ! "${PSQL[@]}" -f "$test"; then status=1; fi
+  "${PSQL_BASE[@]}" -d postgres -c "create database test_$n template questlight_base"
+  if ! "${PSQL_BASE[@]}" -d "test_$n" -f "$test"; then status=1; fi
 done
 
 if [ "$status" = "0" ]; then echo "✓ database tests passed"; else echo "✗ database tests FAILED"; fi

@@ -63,6 +63,17 @@ describe("validateGeneratedQuestion", () => {
     expect(errorsFor(dup)).toContain("answer options are not distinct");
   });
 
+  it("treats apostrophes as meaningful when comparing options", () => {
+    const q = goodQuestion();
+    q.options = [
+      { id: "A", text: "The dog wagged it's tail." },
+      { id: "B", text: "The dog wagged its tail." },
+      { id: "C", text: "The dog's wagged it's tail." },
+      { id: "D", text: "The dogs wagged it's tails." },
+    ];
+    expect(errorsFor(q)).not.toContain("answer options are not distinct");
+  });
+
   it("rejects 'all of the above' style answers", () => {
     const bad = goodQuestion();
     bad.options[3] = { id: "D", text: "All of the above" };

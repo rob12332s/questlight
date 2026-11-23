@@ -13,7 +13,7 @@ insert into auth.users (id, email, raw_user_meta_data) values
   (tests.carol(), 'carol@example.test', '{}');
 
 insert into public.topics (id, subject_id, slug, name, education_stage)
-select '10000000-0000-4000-8000-000000000001', id, 'cell-biology', 'Cell biology', 'gcse' from public.subjects where slug = 'biology';
+select '10000000-0000-4000-8000-000000000001', id, 'cell-biology-test', 'Cell biology (test)', 'gcse' from public.subjects where slug = 'biology';
 
 insert into public.questions (id, topic_id, question_text, options, difficulty, is_published) values
   ('20000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001',
@@ -138,9 +138,9 @@ select tests.assert((select correct_option is null and explanation is null from 
 \echo '  ✓ answers and question order stay server-side'
 
 -- ── Questions visibility ─────────────────────────────────────────────────────
-select tests.assert((select count(*) = 3 from public.questions), 'alice sees only published questions');
+select tests.assert((select count(*) = 3 from public.questions where topic_id = '10000000-0000-4000-8000-000000000001'), 'alice sees only published questions');
 select tests.login(tests.bob());
-select tests.assert((select count(*) = 4 from public.questions), 'bob also sees his own unpublished AI question');
+select tests.assert((select count(*) = 4 from public.questions where topic_id = '10000000-0000-4000-8000-000000000001'), 'bob also sees his own unpublished AI question');
 \echo '  ✓ AI questions stay private to their creator'
 
 -- ── Students cannot write game state ─────────────────────────────────────────
@@ -432,7 +432,7 @@ delete from auth.users where id = tests.bob();
 select tests.assert((select count(*) = 0 from public.profiles where id = tests.bob()), 'profile deleted with account');
 select tests.assert((select count(*) = 0 from public.room_players where player_id = tests.bob()), 'room membership deleted');
 select tests.assert((select count(*) = 0 from public.questions where id = '20000000-0000-4000-8000-000000000002'), 'deleted user''s private AI questions removed');
-select tests.assert((select count(*) = 3 from public.questions where is_published), 'shared bank questions survive');
+select tests.assert((select count(*) = 3 from public.questions where is_published and topic_id = '10000000-0000-4000-8000-000000000001'), 'shared bank questions survive');
 select tests.assert((select count(*) = 0 from public.game_rooms where host_id = tests.bob()), 'rooms hosted by deleted user removed');
 delete from auth.users where id = tests.alice();
 select tests.assert((select count(*) = 0 from public.flashcards), 'flashcards deleted with account');

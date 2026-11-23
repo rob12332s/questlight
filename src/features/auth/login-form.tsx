@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
 import { Field, FormAlert, Input, SubmitButton } from "@/components/ui/form";
 import { logIn } from "./actions";
@@ -32,6 +33,11 @@ export function LogInForm({
       <Field label="Password" error={errors.password}>
         {(props) => <Input {...props} name="password" type="password" autoComplete="current-password" required />}
       </Field>
+      <p className="-mt-2 text-right text-sm">
+        <Link href="/forgot-password" className="text-ink-soft underline-offset-4 hover:text-ink hover:underline">
+          Forgot your password?
+        </Link>
+      </p>
 
       <SubmitButton pendingLabel="Logging in…" size="lg" className="w-full" disabled={!configured}>
         Log in

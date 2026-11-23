@@ -1,0 +1,68 @@
+import type { BankTopic } from "./types";
+
+export const HUMANITIES: BankTopic[] = [
+  {
+    subject: "history",
+    slug: "medicine-through-time",
+    name: "Medicine through time",
+    description: "Ideas about disease and treatment from medieval times to the modern day.",
+    questions: [
+      { key: "f1", type: "mc", difficulty: "foundation", q: "Which of these was one of the four humours in ancient and medieval medicine?", options: ["Black bile", "Plasma", "Adrenaline", "Insulin"], answer: 0, explain: "The four humours were blood, phlegm, yellow bile and black bile. Illness was thought to come from an imbalance between them." },
+      { key: "f2", type: "mc", difficulty: "foundation", q: "Who developed a vaccine against smallpox in 1796?", options: ["Edward Jenner", "Louis Pasteur", "Joseph Lister", "Alexander Fleming"], answer: 0, explain: "Jenner noticed milkmaids who caught cowpox didn't catch smallpox, and used cowpox to vaccinate a boy, James Phipps." },
+      { key: "f3", type: "tf", difficulty: "foundation", q: "True or false: Alexander Fleming discovered penicillin in 1928.", answer: true, explain: "Fleming noticed mould killing bacteria on a culture plate in 1928, but he could not produce penicillin in large amounts." },
+      { key: "s1", type: "mc", difficulty: "standard", q: "Louis Pasteur is best known for which idea, published in 1861?", options: ["Germ theory", "The Theory of the Four Humours", "Antiseptic surgery", "Blood circulation"], answer: 0, explain: "Pasteur's germ theory showed that microbes cause decay and disease, replacing ideas such as spontaneous generation." },
+      { key: "s2", type: "mc", difficulty: "standard", q: "Who first used chloroform as an anaesthetic, in 1847?", options: ["James Simpson", "Joseph Lister", "John Snow", "Florence Nightingale"], answer: 0, explain: "Simpson, a Scottish surgeon, found chloroform made patients unconscious. Lister later introduced carbolic acid as an antiseptic." },
+      { key: "s3", type: "short", difficulty: "standard", q: "Which doctor linked an 1854 cholera outbreak in London to a water pump on Broad Street?", accept: ["john snow", "snow", "dr john snow", "dr snow"], explain: "John Snow mapped the deaths, found they clustered around the Broad Street pump, and had its handle removed." },
+      { key: "c1", type: "mc", difficulty: "challenge", q: "Why was the Great Stink of 1858 significant for public health?", options: ["It pushed Parliament to fund Bazalgette's new sewer system for London", "It proved germ theory correct", "It led to the creation of the NHS", "It ended the use of anaesthetics"], answer: 0, explain: "The smell from the Thames was so bad near Parliament that MPs funded Joseph Bazalgette's sewers, which reduced cholera." },
+      { key: "c2", type: "mc", difficulty: "challenge", q: "What was Florey and Chain's role in the story of penicillin?", options: ["They purified it and showed it could treat infections, leading to mass production in the 1940s", "They discovered the mould by accident", "They invented the first vaccine", "They proved that bad air caused disease"], answer: 0, explain: "Fleming discovered penicillin, but Florey and Chain developed it into a usable drug. Wartime funding in the USA and Britain led to mass production." },
+    ],
+  },
+  {
+    subject: "history",
+    slug: "germany-1918-1939",
+    name: "Germany, 1918–1939",
+    description: "The Weimar Republic, the rise of the Nazis and Nazi control.",
+    questions: [
+      { key: "f1", type: "mc", difficulty: "foundation", q: "In which year did Hitler become Chancellor of Germany?", options: ["1933", "1923", "1929", "1939"], answer: 0, explain: "Hitler was appointed Chancellor in January 1933 by President Hindenburg." },
+      { key: "f2", type: "mc", difficulty: "foundation", q: "Which treaty, signed in 1919, set out the peace terms for Germany after the First World War?", options: ["The Treaty of Versailles", "The Treaty of London", "The Munich Agreement", "The Locarno Treaties"], answer: 0, explain: "The Treaty of Versailles took land from Germany, limited its army and made it pay reparations, which caused deep resentment." },
+      { key: "f3", type: "tf", difficulty: "foundation", q: "True or false: hyperinflation in Germany reached its peak in 1923.", answer: true, explain: "In 1923 prices rose so fast that money became almost worthless, partly because the government printed money after the French occupied the Ruhr." },
+      { key: "s1", type: "mc", difficulty: "standard", q: "Which event in February 1933 did the Nazis use as an excuse to arrest communists?", options: ["The Reichstag Fire", "The Munich Putsch", "The Night of the Long Knives", "Kristallnacht"], answer: 0, explain: "A Dutch communist was blamed for the fire. Hitler used it to persuade Hindenburg to pass emergency decrees." },
+      { key: "s2", type: "mc", difficulty: "standard", q: "What did the Enabling Act of March 1933 allow Hitler to do?", options: ["Pass laws without the approval of the Reichstag", "Become President as well as Chancellor", "Leave the League of Nations", "Join with Austria"], answer: 0, explain: "The Enabling Act gave Hitler's government the power to make laws for four years without the Reichstag, laying the ground for dictatorship." },
+      { key: "s3", type: "short", difficulty: "standard", q: "What name is given to the events of June 1934, when Hitler had Ernst Röhm and other SA leaders killed?", accept: ["night of the long knives", "the night of the long knives"], explain: "In the Night of the Long Knives, Hitler removed rivals in the SA and won the support of the army." },
+      { key: "c1", type: "mc", difficulty: "challenge", q: "What did Article 48 of the Weimar Constitution allow?", options: ["The President to rule by decree in an emergency", "The Chancellor to ban all other parties", "Women to vote for the first time", "Germany to rebuild its army"], answer: 0, explain: "Article 48 let the President bypass the Reichstag in an emergency. It was used heavily from 1930, weakening democracy." },
+      { key: "c2", type: "mc", difficulty: "challenge", q: "How did Gustav Stresemann help Germany's economy recover after 1923?", options: ["He introduced a new currency, the Rentenmark, and agreed the Dawes Plan for loans and reparations", "He stopped paying all reparations", "He ended the Weimar Republic", "He took Germany out of the League of Nations"], answer: 0, explain: "The Rentenmark ended hyperinflation, and the 1924 Dawes Plan brought US loans and lower yearly reparation payments." },
+    ],
+  },
+  {
+    subject: "geography",
+    slug: "natural-hazards",
+    name: "Natural hazards",
+    description: "Plate tectonics, earthquakes, volcanoes and tropical storms.",
+    questions: [
+      { key: "f1", type: "mc", difficulty: "foundation", q: "At which type of plate margin do plates move apart?", options: ["Constructive", "Destructive", "Conservative", "Collision"], answer: 0, explain: "At constructive margins plates move apart and magma rises to form new crust, as at the Mid-Atlantic Ridge." },
+      { key: "f2", type: "mc", difficulty: "foundation", q: "Which instrument is used to detect and record earthquakes?", options: ["Seismometer", "Barometer", "Anemometer", "Thermometer"], answer: 0, explain: "A seismometer records ground shaking. A barometer measures air pressure and an anemometer measures wind speed." },
+      { key: "f3", type: "tf", difficulty: "foundation", q: "True or false: volcanoes can form at constructive plate margins.", answer: true, explain: "Magma rises where plates move apart, forming gently sloping shield volcanoes, such as those in Iceland." },
+      { key: "s1", type: "mc", difficulty: "standard", q: "Why do many people choose to live near volcanoes?", options: ["Volcanic soils are very fertile for farming", "Volcanoes never erupt more than once", "Land near volcanoes is always flat", "There are no earthquakes near volcanoes"], answer: 0, explain: "Fertile soils, tourism, geothermal energy and minerals all attract people, despite the risk of eruptions." },
+      { key: "s2", type: "mc", difficulty: "standard", q: "What happens at a conservative plate margin?", options: ["Plates slide past each other", "Plates move apart", "An oceanic plate sinks under a continental plate", "Plates stop moving completely"], answer: 0, explain: "At conservative margins plates slide past each other. Friction builds up and is released as earthquakes, as on the San Andreas Fault." },
+      { key: "s3", type: "short", difficulty: "standard", q: "What is the point on the Earth's surface directly above the focus of an earthquake called?", accept: ["epicentre", "epicenter", "the epicentre", "the epicenter"], explain: "The focus is where the earthquake starts underground; the epicentre is directly above it, where shaking is usually strongest." },
+      { key: "c1", type: "mc", difficulty: "challenge", q: "Why do earthquakes in lower-income countries often cause more deaths than similar earthquakes in higher-income countries?", options: ["Buildings are less likely to be earthquake-resistant and emergency services may be less well prepared", "Earthquakes there are always stronger", "People there live further from plate margins", "Seismometers don't work there"], answer: 0, explain: "Building standards, preparation, emergency response and healthcare all reduce deaths. These often depend on money and resources." },
+      { key: "c2", type: "mc", difficulty: "challenge", q: "Tropical storms usually form over oceans with a surface temperature of at least about…", options: ["27 °C", "10 °C", "17 °C", "37 °C"], answer: 0, explain: "Warm water of about 27 °C or more supplies the heat and moisture that power a tropical storm." },
+    ],
+  },
+  {
+    subject: "geography",
+    slug: "rivers",
+    name: "Rivers",
+    description: "River processes, landforms and flood management.",
+    questions: [
+      { key: "f1", type: "mc", difficulty: "foundation", q: "What is the start of a river called?", options: ["Source", "Mouth", "Confluence", "Tributary"], answer: 0, explain: "The source is where a river begins, often in hills or mountains. The mouth is where it meets the sea." },
+      { key: "f2", type: "mc", difficulty: "foundation", q: "What is a smaller river that joins a larger river called?", options: ["A tributary", "A meander", "A delta", "An estuary"], answer: 0, explain: "A tributary flows into a larger river. The point where they meet is called a confluence." },
+      { key: "f3", type: "tf", difficulty: "foundation", q: "True or false: deposition happens when a river loses energy.", answer: true, explain: "When a river slows down, for example on the inside of a bend or at its mouth, it drops the material it was carrying." },
+      { key: "s1", type: "mc", difficulty: "standard", q: "Which erosion process happens when rocks carried by the river wear away the bed and banks?", options: ["Abrasion", "Attrition", "Hydraulic action", "Solution"], answer: 0, explain: "Abrasion is rocks scraping the bed and banks. Attrition is rocks hitting each other and becoming smaller and rounder." },
+      { key: "s2", type: "mc", difficulty: "standard", q: "How does a waterfall form?", options: ["A band of hard rock lies over softer rock, which erodes faster and undercuts the hard rock", "A river flows uphill", "Deposition builds up a wall of rock", "A glacier melts into the river"], answer: 0, explain: "The soft rock erodes to form an overhang and a plunge pool. The overhang collapses, and the waterfall retreats upstream, forming a gorge." },
+      { key: "s3", type: "short", difficulty: "standard", q: "What is a crescent-shaped lake formed when a meander is cut off from the river called?", accept: ["ox-bow lake", "oxbow lake", "ox bow lake", "ox-bow", "oxbow"], explain: "Erosion narrows the meander's neck until the river breaks through. Deposition then seals off the old loop as an ox-bow lake." },
+      { key: "c1", type: "mc", difficulty: "challenge", q: "Why does a river's velocity often increase downstream, even though the gradient gets less steep?", options: ["The channel gets wider and deeper, so a smaller share of the water touches the bed and banks, reducing friction", "The water gets colder", "Tributaries make the river shallower", "Gravity is stronger near the sea"], answer: 0, explain: "A larger, smoother channel is more efficient: less energy is lost to friction, so the water can flow faster." },
+      { key: "c2", type: "mc", difficulty: "challenge", q: "Which of these is a hard engineering flood defence?", options: ["Building embankments", "Planting trees in the drainage basin", "Floodplain zoning", "Restoring the river's meanders"], answer: 0, explain: "Hard engineering uses built structures such as embankments, dams and flood walls. The other options are soft engineering." },
+    ],
+  },
+];

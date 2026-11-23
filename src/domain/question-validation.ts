@@ -51,6 +51,10 @@ const BANNED_OPTION_PATTERNS = [
   /^[a-d] and [a-d]$/,
 ];
 
+function optionKey(text: string): string {
+  return text.toLowerCase().replace(/\s+/g, " ").trim().replace(/[.,;:]+$/, "");
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -91,7 +95,9 @@ export function validateGeneratedQuestion(raw: unknown, request: GenerationReque
         options.push({ id: expectedId, text: optionText });
       }
     });
-    const normalizedTexts = options.map((option) => normalizeAnswerText(option.text));
+    // Stricter than normalizeAnswerText: apostrophes stay, because "its" and "it's"
+    // are genuinely different answers.
+    const normalizedTexts = options.map((option) => optionKey(option.text));
     if (new Set(normalizedTexts).size !== normalizedTexts.length) errors.push("answer options are not distinct");
   }
 

@@ -92,6 +92,50 @@ export async function logIn(_prev: FormState, formData: FormData): Promise<FormS
   redirect(safeNextPath(formData.get("next")));
 }
 
+export async function requestPasswordReset(_prev: FormState, formData: FormData): Promise<FormState> {
+  const values = { email: String(formData.get("email") ?? "") };
+  if (!isSupabaseConfigured(process.env)) return { ...NOT_CONFIGURED, values };
+  const parsed = logInSchema.shape.email.safeParse(values.email);
+  if (!parsed.success) return { status: "error", errors: { email: parsed.error.issues[0]?.message }, values };
+
+  const supabase = await getServerSupabase();
+  const siteUrl = await getSiteUrl();
+  const { error } = await supabase.auth.resetPasswordForEmail(parsed.data, {
+    redirectTo: `${siteUrl}/auth/callback?next=/reset-password`,
+  });
+  if (error && (error.code === "over_email_send_rate_limit" || error.code === "over_request_rate_limit")) {
+    return { status: "error", message: authMessage(error.code), values };
+  }
+  // Same answer whether or not the email has an account, so the form can't reveal who signed up.
+  return {
+    status: "success",
+    message: `If ${parsed.data} has an account, we've sent it a link to choose a new password. Open it on this device.`,
+  };
+}
+
+export async function updatePassword(_prev: FormState, formData: FormData): Promise<FormState> {
+  if (!isSupabaseConfigured(process.env)) return NOT_CONFIGURED;
+  const parsed = signUpSchema.shape.password.safeParse(String(formData.get("password") ?? ""));
+  if (!parsed.success) return { status: "error", errors: { password: parsed.error.issues[0]?.message } };
+  if (formData.get("password") !== formData.get("confirm")) {
+    return { status: "error", errors: { confirm: "The two passwords don't match." } };
+  }
+  const supabase = await getServerSupabase();
+  const { error } = await supabase.auth.updateUser({ password: parsed.data });
+  if (error) {
+    return {
+      status: "error",
+      message:
+        error.code === "same_password"
+          ? "Choose a password you haven't used for this account before."
+          : error.code === "session_not_found" || error.status === 401
+            ? "Your reset link has expired. Request a new one."
+            : authMessage(error.code),
+    };
+  }
+  redirect("/dashboard?passwordUpdated=1");
+}
+
 export async function logOut(): Promise<void> {
   if (isSupabaseConfigured(process.env)) {
     const supabase = await getServerSupabase();

@@ -1,56 +1,97 @@
 import type { Metadata } from "next";
-import { Check, Circle } from "lucide-react";
+import { ArrowRight, Check, Circle, Flame } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { SubjectIcon } from "@/components/subject-icon";
 import { ButtonLink } from "@/components/ui/button";
-import { StatusBadge } from "@/components/ui/status-badge";
-import { levelFromXp } from "@/domain/progression";
+import { FormAlert } from "@/components/ui/form";
+import { currentStreak, levelFromXp } from "@/domain/progression";
+import { recommendNext, type TopicFacts } from "@/domain/recommendations";
 import { EDUCATION_STAGE_LABELS } from "@/domain/types";
 import { LevelProgress } from "@/features/progress/level-progress";
-import { getServerSupabase } from "@/lib/supabase/server";
 import { cn } from "@/lib/cn";
+import { getServerSupabase } from "@/lib/supabase/server";
+import { getActivityDays, getCurriculum, getRecentQuizzes, getTopicProgress, todayInLondon } from "@/server/learning";
 import { getCurrentStudent } from "@/server/session";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
-interface SubjectRow {
-  subjects: { slug: string; name: string } | null;
-}
+const KIND_LABEL = {
+  revisit_weak: "Needs work",
+  return_after_gap: "Time to revisit",
+  start_new: "Not started",
+  stretch: "Ready to stretch",
+} as const;
 
-export default async function DashboardPage() {
+export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ passwordUpdated?: string }> }) {
+  const { passwordUpdated } = await searchParams;
   const student = await getCurrentStudent();
   if (!student) redirect("/login");
   const supabase = await getServerSupabase();
 
-  // Everything shown here is read from the student's own rows (RLS-scoped). Nothing is estimated.
-  const [subjectsResult, progressResult] = await Promise.all([
-    supabase.from("profile_subjects").select("subjects(slug, name)").eq("profile_id", student.userId),
-    supabase.from("user_progress").select("questions_attempted").eq("player_id", student.userId),
+  // Everything here comes from the student's own rows (RLS-scoped). Nothing is estimated.
+  const [chosenResult, curriculum, progress, recent, activityDays] = await Promise.all([
+    supabase.from("profile_subjects").select("subject_id").eq("profile_id", student.userId),
+    getCurriculum(),
+    getTopicProgress(student.userId),
+    getRecentQuizzes(student.userId, 4),
+    getActivityDays(student.userId),
   ]);
-  const subjects = ((subjectsResult.data ?? []) as unknown as SubjectRow[])
-    .map((row) => row.subjects)
-    .filter((s): s is { slug: string; name: string } => s !== null)
-    .sort((a, b) => a.name.localeCompare(b.name));
-  const progressRows = (progressResult.data ?? []) as Array<{ questions_attempted: number }>;
-  const questionsAnswered = progressRows.reduce((sum, row) => sum + row.questions_attempted, 0);
+  const chosenIds = new Set(((chosenResult.data ?? []) as Array<{ subject_id: string }>).map((r) => r.subject_id));
+  const subjects = curriculum.filter((s) => chosenIds.has(s.id));
   const level = levelFromXp(student.profile.xp);
-  const stage = student.profile.education_stage;
+  const streak = currentStreak(activityDays, todayInLondon());
+  const questionsAnswered = [...progress.values()].reduce((sum, p) => sum + p.questionsAttempted, 0);
+
+  const topicIndex = new Map(curriculum.flatMap((s) => s.topics.map((t) => [t.id, { topic: t, subject: s }] as const)));
+  const practised: TopicFacts[] = [...progress.values()].flatMap((p) => {
+    const found = topicIndex.get(p.topicId);
+    if (!found) return [];
+    return [
+      {
+        topicId: p.topicId,
+        topicName: found.topic.name,
+        subjectName: found.subject.name,
+        questionsAttempted: p.questionsAttempted,
+        correctAnswers: p.correctAnswers,
+        mastery: p.mastery,
+        lastPractisedAt: p.lastPractisedAt ? new Date(p.lastPractisedAt) : null,
+      },
+    ];
+  });
+  const untried = (subjects.length > 0 ? subjects : curriculum).flatMap((s) =>
+    s.topics
+      .filter((t) => !progress.has(t.id) && t.questionCount >= 3)
+      .map((t) => ({ topicId: t.id, topicName: t.name, subjectName: s.name })),
+  );
+  const recommendations = recommendNext(practised, untried);
 
   const steps = [
     { done: true, label: "Create your account" },
     { done: subjects.length > 0, label: "Choose your subjects", href: "/settings#subjects" },
-    { done: false, label: "Take your first quiz", soon: true },
+    { done: recent.length > 0, label: "Finish your first quiz", href: "/quizzes" },
   ];
+  const showSteps = steps.some((s) => !s.done);
+  const stage = student.profile.education_stage;
 
   return (
     <div>
-      <header>
-        <h1 className="text-3xl font-semibold sm:text-4xl">Hi, {student.profile.display_name}</h1>
-        <p className="mt-2 text-ink-soft">
-          {stage ? EDUCATION_STAGE_LABELS[stage] : "No stage chosen"}
-          {subjects.length > 0 && `, ${subjects.length} subject${subjects.length === 1 ? "" : "s"}`}
-        </p>
+      {passwordUpdated !== undefined && (
+        <div className="mb-6">
+          <FormAlert tone="success">Your new password is saved.</FormAlert>
+        </div>
+      )}
+      <header className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-semibold sm:text-4xl">Hi, {student.profile.display_name}</h1>
+          <p className="mt-2 text-ink-soft">
+            {stage ? EDUCATION_STAGE_LABELS[stage] : "No stage chosen"}
+            {subjects.length > 0 && `, ${subjects.length} subject${subjects.length === 1 ? "" : "s"}`}
+          </p>
+        </div>
+        <ButtonLink href="/quizzes" size="lg">
+          Start a quiz
+        </ButtonLink>
       </header>
 
       <div className="mt-10 grid gap-6 lg:grid-cols-[1.2fr_1fr]">
@@ -59,50 +100,125 @@ export default async function DashboardPage() {
             Your progress
           </h2>
           <LevelProgress progress={level} totalXp={student.profile.xp} />
-          <dl className="mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-lg bg-line">
+          <dl className="mt-6 grid grid-cols-3 gap-px overflow-hidden rounded-lg bg-line">
             <div className="bg-deep p-4">
-              <dt className="text-sm text-ink-muted">Questions answered</dt>
+              <dt className="text-sm text-ink-muted">Answered</dt>
               <dd className="tabular mt-1 text-2xl font-semibold">{questionsAnswered}</dd>
             </div>
             <div className="bg-deep p-4">
-              <dt className="text-sm text-ink-muted">Topics practised</dt>
-              <dd className="tabular mt-1 text-2xl font-semibold">{progressRows.length}</dd>
+              <dt className="text-sm text-ink-muted">Topics</dt>
+              <dd className="tabular mt-1 text-2xl font-semibold">{progress.size}</dd>
+            </div>
+            <div className="bg-deep p-4">
+              <dt className="flex items-center gap-1 text-sm text-ink-muted">
+                <Flame className={cn("h-3.5 w-3.5", streak > 0 && "text-caution")} aria-hidden /> Streak
+              </dt>
+              <dd className="tabular mt-1 text-2xl font-semibold">
+                {streak}
+                <span className="ml-1 text-sm font-normal text-ink-muted">{streak === 1 ? "day" : "days"}</span>
+              </dd>
             </div>
           </dl>
         </section>
 
-        <section aria-labelledby="steps-heading" className="animate-enter rounded-xl border border-line p-6 [animation-delay:120ms]">
-          <h2 id="steps-heading" className="font-semibold">
-            Getting started
-          </h2>
-          <ol className="mt-4 space-y-3">
-            {steps.map((step) => (
-              <li key={step.label} className="flex items-center gap-3">
-                {step.done ? (
-                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-correct text-white">
-                    <Check className="h-3.5 w-3.5" strokeWidth={3} aria-hidden />
-                  </span>
-                ) : (
-                  <Circle className="h-6 w-6 text-line-strong" aria-hidden />
-                )}
-                <span className={cn("flex-1", step.done ? "text-ink-muted line-through" : "text-ink")}>
-                  {!step.done && step.href ? (
-                    <Link href={step.href} className="underline decoration-line-strong underline-offset-4 hover:decoration-ink">
-                      {step.label}
-                    </Link>
+        {showSteps ? (
+          <section aria-labelledby="steps-heading" className="animate-enter rounded-xl border border-line p-6 [animation-delay:120ms]">
+            <h2 id="steps-heading" className="font-semibold">
+              Getting started
+            </h2>
+            <ol className="mt-4 space-y-3">
+              {steps.map((step) => (
+                <li key={step.label} className="flex items-center gap-3">
+                  {step.done ? (
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-correct text-white">
+                      <Check className="h-3.5 w-3.5" strokeWidth={3} aria-hidden />
+                    </span>
                   ) : (
-                    step.label
+                    <Circle className="h-6 w-6 text-line-strong" aria-hidden />
                   )}
-                  <span className="sr-only">{step.done ? " (done)" : " (to do)"}</span>
-                </span>
-                {step.soon && !step.done && <StatusBadge status="in_development" />}
-              </li>
-            ))}
-          </ol>
-        </section>
+                  <span className={cn("flex-1", step.done ? "text-ink-muted line-through" : "text-ink")}>
+                    {!step.done && step.href ? (
+                      <Link href={step.href} className="underline decoration-line-strong underline-offset-4 hover:decoration-ink">
+                        {step.label}
+                      </Link>
+                    ) : (
+                      step.label
+                    )}
+                    <span className="sr-only">{step.done ? " (done)" : " (to do)"}</span>
+                  </span>
+                </li>
+              ))}
+            </ol>
+          </section>
+        ) : (
+          <section aria-labelledby="recent-heading" className="animate-enter rounded-xl border border-line p-6 [animation-delay:120ms]">
+            <div className="flex items-center justify-between">
+              <h2 id="recent-heading" className="font-semibold">
+                Recent quizzes
+              </h2>
+              <Link href="/quizzes" className="text-sm text-ink-soft hover:text-ink">
+                All quizzes
+              </Link>
+            </div>
+            <ul className="mt-3 divide-y divide-line">
+              {recent.map((q) => (
+                <li key={q.id}>
+                  <Link href={`/quizzes/${q.id}`} className="flex items-center justify-between gap-3 py-2.5 hover:text-ink">
+                    <span className="min-w-0 truncate text-sm">{q.topicName}</span>
+                    <span className="tabular shrink-0 text-sm text-ink-soft">
+                      {q.correct}/{q.total}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
       </div>
 
-      <section aria-labelledby="subjects-heading" className="mt-10 animate-enter [animation-delay:180ms]">
+      <section aria-labelledby="next-heading" className="mt-10 animate-enter [animation-delay:180ms]">
+        <h2 id="next-heading" className="text-xl font-semibold">
+          What to study next
+        </h2>
+        <p className="mt-1 text-sm text-ink-muted">
+          Based on your answers. A topic is only judged once you&apos;ve answered at least 10 questions on it.
+        </p>
+        {recommendations.length === 0 ? (
+          <div className="mt-4 rounded-xl border border-dashed border-line-strong p-8 text-center">
+            <p className="font-medium">Nothing to suggest yet</p>
+            <p className="mx-auto mt-1 max-w-md text-sm text-ink-soft">Take a few quizzes and suggestions will appear here.</p>
+          </div>
+        ) : (
+          <ul className="mt-4 grid gap-3 md:grid-cols-3">
+            {recommendations.map((rec) => (
+              <li key={`${rec.kind}-${rec.topicId}`}>
+                <Link
+                  href={`/quizzes?topic=${rec.topicId}`}
+                  className="group flex h-full flex-col rounded-xl border border-line p-5 transition-[border-color,transform] duration-300 hover:-translate-y-0.5 hover:border-line-strong"
+                >
+                  <span
+                    className={cn(
+                      "self-start rounded-sm px-2 py-0.5 text-xs",
+                      rec.kind === "revisit_weak" ? "bg-incorrect/15 text-incorrect" : "bg-beam-wash text-beam-bright",
+                    )}
+                  >
+                    {KIND_LABEL[rec.kind]}
+                  </span>
+                  <span className="mt-3 font-medium">{rec.topicName}</span>
+                  <span className="text-sm text-ink-muted">{rec.subjectName}</span>
+                  <span className="mt-2 flex-1 text-sm text-ink-soft">{rec.reason}</span>
+                  <span className="mt-4 inline-flex items-center gap-1 text-sm text-beam-bright">
+                    Practise
+                    <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" aria-hidden />
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section aria-labelledby="subjects-heading" className="mt-10 animate-enter [animation-delay:240ms]">
         <div className="flex items-center justify-between gap-4">
           <h2 id="subjects-heading" className="text-xl font-semibold">
             Your subjects
@@ -116,9 +232,7 @@ export default async function DashboardPage() {
         {subjects.length === 0 ? (
           <div className="mt-4 rounded-xl border border-dashed border-line-strong p-8 text-center">
             <p className="font-medium">Choose the subjects you&apos;re studying</p>
-            <p className="mx-auto mt-1 max-w-sm text-sm text-ink-soft">
-              Quizzes, flashcards and suggestions will focus on them.
-            </p>
+            <p className="mx-auto mt-1 max-w-sm text-sm text-ink-soft">Suggestions will focus on them.</p>
             <ButtonLink href="/settings#subjects" variant="secondary" className="mt-5">
               Choose subjects
             </ButtonLink>
@@ -126,26 +240,16 @@ export default async function DashboardPage() {
         ) : (
           <ul className="mt-4 grid gap-px overflow-hidden rounded-xl bg-line sm:grid-cols-2 lg:grid-cols-3">
             {subjects.map((subject) => (
-              <li key={subject.slug} className="flex items-center gap-3 bg-night p-4">
-                <SubjectIcon slug={subject.slug} className="h-5 w-5 text-ink-muted" />
-                {subject.name}
+              <li key={subject.slug}>
+                <Link href={`/learn#${subject.slug}`} className="flex items-center gap-3 bg-night p-4 transition-colors hover:bg-deep">
+                  <SubjectIcon slug={subject.slug} className="h-5 w-5 text-ink-muted" />
+                  <span className="flex-1">{subject.name}</span>
+                  <span className="text-xs text-ink-muted">{subject.topics.length} topics</span>
+                </Link>
               </li>
             ))}
           </ul>
         )}
-      </section>
-
-      <section aria-labelledby="weak-heading" className="mt-10 animate-enter [animation-delay:240ms]">
-        <h2 id="weak-heading" className="text-xl font-semibold">
-          Topics to work on
-        </h2>
-        <div className="mt-4 rounded-xl border border-dashed border-line-strong p-8 text-center">
-          <p className="font-medium">Nothing to suggest yet</p>
-          <p className="mx-auto mt-1 max-w-md text-sm text-ink-soft">
-            After you&apos;ve answered at least 10 questions on a topic, your weakest topics will show up here with a
-            suggested next step.
-          </p>
-        </div>
       </section>
     </div>
   );

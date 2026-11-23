@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: ["**"]
   pull_request:
 
 concurrency:
@@ -13,7 +13,7 @@ jobs:
   app:
     name: Lint, unit tests, build, end-to-end
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -35,6 +35,23 @@ jobs:
         run: npm run lint
       - name: Unit tests
         run: npm test
+      # A throwaway local Supabase (Postgres + Auth + REST + Realtime) with every
+      # migration applied, so end-to-end tests exercise the real backend.
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Start local Supabase
+        run: supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor,postgres-meta,storage-api
+      - name: Point the app at local Supabase
+        run: |
+          eval "$(supabase status -o env)"
+          {
+            echo "NEXT_PUBLIC_SUPABASE_URL=${API_URL}"
+            echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=${PUBLISHABLE_KEY:-$ANON_KEY}"
+            echo "SUPABASE_SERVICE_ROLE_KEY=${SECRET_KEY:-$SERVICE_ROLE_KEY}"
+            echo "NEXT_PUBLIC_SITE_URL=http://localhost:3000"
+            echo "E2E_WITH_SUPABASE=1"
+          } >> "$GITHUB_ENV"
       - name: Build (includes type checking)
         run: npm run build
       - name: Install browser

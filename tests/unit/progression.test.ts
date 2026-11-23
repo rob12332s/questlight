@@ -117,3 +117,35 @@ describe("currentStreak", () => {
     expect(currentStreak(["2026-10-31", "2026-11-01"], "2026-11-01")).toBe(2);
   });
 });
+
+describe("parity with the database (tests/db/quiz.test.sql)", () => {
+  const six = (rewarded: boolean[], correct: boolean[]) =>
+    rewarded.map((r, i) => ({ questionId: `q${i}`, isCorrect: correct[i]!, alreadyRewardedToday: r }));
+
+  it("quiz one: 5 of 6 right, nothing rewarded yet → 70", () => {
+    const xp = calculateSoloQuizXp({
+      answers: six([false, false, false, false, false, false], [false, true, true, true, true, true]),
+      soloXpEarnedToday: 0,
+      previousBestAccuracy: null,
+    });
+    expect(xp.total).toBe(70);
+  });
+
+  it("quiz two: all right, only the missed one fresh, beats 0.833 → 70", () => {
+    const xp = calculateSoloQuizXp({
+      answers: six([false, true, true, true, true, true], [true, true, true, true, true, true]),
+      soloXpEarnedToday: 70,
+      previousBestAccuracy: 0.833,
+    });
+    expect(xp).toMatchObject({ correctAnswers: 10, completion: 20, perfect: 25, personalBest: 15, total: 70 });
+  });
+
+  it("quiz three: identical replay → 0", () => {
+    const xp = calculateSoloQuizXp({
+      answers: six([true, true, true, true, true, true], [true, true, true, true, true, true]),
+      soloXpEarnedToday: 140,
+      previousBestAccuracy: 1,
+    });
+    expect(xp.total).toBe(0);
+  });
+});
