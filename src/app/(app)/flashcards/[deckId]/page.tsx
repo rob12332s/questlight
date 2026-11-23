@@ -19,8 +19,7 @@ export default async function DeckPage({ params }: { params: Promise<{ deckId: s
   const deck = await getDeck(deckId);
   if (!deck) notFound();
 
-  const now = Date.now();
-  const due = deck.cards.filter((c) => c.dueAt === null || new Date(c.dueAt).getTime() <= now).length;
+  const due = deck.dueCount;
 
   return (
     <div>

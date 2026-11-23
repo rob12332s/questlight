@@ -48,7 +48,9 @@ export async function getDecks(): Promise<DeckSummary[]> {
   }));
 }
 
-export async function getDeck(deckId: string): Promise<{ id: string; title: string; isAiGenerated: boolean; cards: CardRow[] } | null> {
+export async function getDeck(
+  deckId: string,
+): Promise<{ id: string; title: string; isAiGenerated: boolean; dueCount: number; cards: CardRow[] } | null> {
   const supabase = await getServerSupabase();
   const { data: deck } = await supabase.from("flashcard_decks").select("id, title, is_ai_generated").eq("id", deckId).maybeSingle();
   if (!deck) return null;
@@ -59,11 +61,8 @@ export async function getDeck(deckId: string): Promise<{ id: string; title: stri
     .order("sort_order")
     .order("created_at");
   const d = deck as { id: string; title: string; is_ai_generated: boolean };
-  return {
-    id: d.id,
-    title: d.title,
-    isAiGenerated: d.is_ai_generated,
-    cards: ((cards ?? []) as unknown as Array<{
+  const now = Date.now();
+  const rows: CardRow[] = ((cards ?? []) as unknown as Array<{
       id: string;
       front: string;
       back: string;
@@ -81,6 +80,12 @@ export async function getDeck(deckId: string): Promise<{ id: string; title: stri
         dueAt: review?.due_at ?? null,
         lastRating: review?.last_rating ?? null,
       };
-    }),
+    });
+  return {
+    id: d.id,
+    title: d.title,
+    isAiGenerated: d.is_ai_generated,
+    dueCount: rows.filter((c) => c.dueAt === null || new Date(c.dueAt).getTime() <= now).length,
+    cards: rows,
   };
 }
