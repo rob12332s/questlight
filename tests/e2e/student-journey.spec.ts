@@ -139,8 +139,11 @@ test("a student signs up, studies, and their data stays private", async ({ brows
   const other = await browser.newContext();
   const otherPage = await other.newPage();
   await signUp(otherPage, "Other Student", `other-${run}-${testInfo.project.name}@example.com`);
-  const quizResponse = await otherPage.goto(quizUrl);
-  expect(quizResponse?.status()).toBe(404);
+  // App pages stream behind a loading state, so check what is shown rather than
+  // the status code: the other student gets "not found" and none of the quiz.
+  await otherPage.goto(quizUrl);
+  await expect(otherPage.getByRole("heading", { name: "We couldn't find that." })).toBeVisible();
+  await expect(otherPage.getByText("Cell biology")).toHaveCount(0);
   await otherPage.goto("/flashcards");
   await expect(otherPage.getByText("No decks yet")).toBeVisible();
   await other.close();
