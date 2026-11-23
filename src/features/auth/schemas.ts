@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { DISPLAY_NAME_MESSAGES, displayNameProblem } from "@/domain/profile";
+import { DISPLAY_NAME_MESSAGES, displayNameProblem, suggestEmailFix } from "@/domain/profile";
 import { EDUCATION_STAGES } from "@/domain/types";
 
 export const displayNameSchema = z
@@ -10,9 +10,19 @@ export const displayNameSchema = z
     if (problem) ctx.addIssue({ code: "custom", message: DISPLAY_NAME_MESSAGES[problem] });
   });
 
+const signUpEmailSchema = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .email("Enter a valid email address.")
+  .superRefine((value, ctx) => {
+    const fix = suggestEmailFix(value);
+    if (fix) ctx.addIssue({ code: "custom", message: `Check the end of your email. Did you mean ${fix}?` });
+  });
+
 export const signUpSchema = z.object({
   displayName: displayNameSchema,
-  email: z.string().trim().toLowerCase().email("Enter a valid email address."),
+  email: signUpEmailSchema,
   password: z
     .string()
     .min(8, "Use at least 8 characters.")

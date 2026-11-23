@@ -26,6 +26,13 @@ function authMessage(code: string | undefined): string {
       return "Too many attempts. Wait a minute, then try again.";
     case "signup_disabled":
       return "New sign-ups are paused right now.";
+    case "email_address_invalid":
+      return "That email address doesn't look right. Check it for typos and try again.";
+    case "email_address_not_authorized":
+      return "We can't send a confirmation email to that address yet. Try the email you use for the site's GitHub or Supabase account.";
+    case "user_already_exists":
+    case "email_exists":
+      return "Check your email for a confirmation link, or log in if you've already confirmed.";
     default:
       return "Something went wrong on our side. Try again in a moment.";
   }

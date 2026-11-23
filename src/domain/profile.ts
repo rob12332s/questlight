@@ -27,3 +27,31 @@ export const DISPLAY_NAME_MESSAGES: Record<DisplayNameProblem, string> = {
   bad_edges: "Start and end with a letter or number.",
   double_space: "Use single spaces only.",
 };
+
+/**
+ * Catches common email typos before they reach the auth service, e.g. "gmail.con".
+ * Returns a suggested correction, or null when nothing looks wrong.
+ */
+const DOMAIN_FIXES: Record<string, string> = {
+  "gmial.com": "gmail.com",
+  "gmai.com": "gmail.com",
+  "gamil.com": "gmail.com",
+  "hotmial.com": "hotmail.com",
+  "hotmail.co": "hotmail.com",
+  "icloud.co": "icloud.com",
+  "iclod.com": "icloud.com",
+  "outlook.co": "outlook.com",
+};
+const TLD_FIXES: Record<string, string> = { con: "com", cmo: "com", ocm: "com", vom: "com", xom: "com", couk: "co.uk" };
+
+export function suggestEmailFix(email: string): string | null {
+  const at = email.lastIndexOf("@");
+  if (at < 1) return null;
+  const local = email.slice(0, at);
+  const domain = email.slice(at + 1).toLowerCase();
+  if (DOMAIN_FIXES[domain]) return `${local}@${DOMAIN_FIXES[domain]}`;
+  const dot = domain.lastIndexOf(".");
+  const tld = domain.slice(dot + 1);
+  if (dot > 0 && TLD_FIXES[tld]) return `${local}@${domain.slice(0, dot)}.${TLD_FIXES[tld]}`;
+  return null;
+}
