@@ -54,7 +54,7 @@ export default async function DashboardPage() {
       </header>
 
       <div className="mt-10 grid gap-6 lg:grid-cols-[1.2fr_1fr]">
-        <section aria-labelledby="progress-heading" className="rounded-xl border border-line bg-deep p-6">
+        <section aria-labelledby="progress-heading" className="animate-enter rounded-xl border border-line bg-deep p-6 [animation-delay:60ms]">
           <h2 id="progress-heading" className="sr-only">
             Your progress
           </h2>
@@ -71,7 +71,7 @@ export default async function DashboardPage() {
           </dl>
         </section>
 
-        <section aria-labelledby="steps-heading" className="rounded-xl border border-line p-6">
+        <section aria-labelledby="steps-heading" className="animate-enter rounded-xl border border-line p-6 [animation-delay:120ms]">
           <h2 id="steps-heading" className="font-semibold">
             Getting started
           </h2>
@@ -102,7 +102,7 @@ export default async function DashboardPage() {
         </section>
       </div>
 
-      <section aria-labelledby="subjects-heading" className="mt-10">
+      <section aria-labelledby="subjects-heading" className="mt-10 animate-enter [animation-delay:180ms]">
         <div className="flex items-center justify-between gap-4">
           <h2 id="subjects-heading" className="text-xl font-semibold">
             Your subjects
@@ -135,7 +135,7 @@ export default async function DashboardPage() {
         )}
       </section>
 
-      <section aria-labelledby="weak-heading" className="mt-10">
+      <section aria-labelledby="weak-heading" className="mt-10 animate-enter [animation-delay:240ms]">
         <h2 id="weak-heading" className="text-xl font-semibold">
           Topics to work on
         </h2>

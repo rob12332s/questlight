@@ -21,23 +21,27 @@ export interface CurrentStudent {
 }
 
 /**
- * The signed-in student for this request, or null. Uses getUser(), which validates
- * the session with Supabase rather than trusting the cookie. Cached per request.
+ * The signed-in student for this request, or null. Cached per request.
+ *
+ * getClaims() verifies the JWT signature (locally with the project's public keys, or
+ * via the auth server for older symmetric keys), so a forged cookie is rejected. The
+ * profile query then runs under RLS with the same token, so it can only ever return
+ * this student's own row.
  */
 export const getCurrentStudent = cache(async (): Promise<CurrentStudent | null> => {
   if (!isSupabaseConfigured(process.env)) return null;
   const supabase = await getServerSupabase();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return null;
+  const { data, error: claimsError } = await supabase.auth.getClaims();
+  const claims = data?.claims;
+  if (claimsError || !claims?.sub) return null;
 
   const { data: profile, error } = await supabase
     .from("profiles")
     .select("id, display_name, education_stage, show_on_leaderboards, xp, account_type")
-    .eq("id", user.id)
+    .eq("id", claims.sub)
     .single();
   if (error || !profile) return null;
 
-  return { userId: user.id, email: user.email ?? null, profile: profile as ProfileRow };
+  const email = typeof claims.email === "string" ? claims.email : null;
+  return { userId: claims.sub, email, profile: profile as ProfileRow };
 });

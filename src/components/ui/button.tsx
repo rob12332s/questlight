@@ -7,8 +7,8 @@ type Size = "sm" | "md" | "lg";
 
 const base =
   "inline-flex items-center justify-center gap-2 rounded-md font-medium whitespace-nowrap select-none " +
-  "transition-[background-color,color,box-shadow,transform] duration-150 ease-out " +
-  "active:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50";
+  "transition-[background-color,color,box-shadow,transform] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] " +
+  "active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50";
 
 const variants: Record<Variant, string> = {
   primary: "bg-beam text-night hover:bg-beam-bright",

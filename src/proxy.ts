@@ -27,9 +27,11 @@ export async function proxy(request: NextRequest) {
     },
   });
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // getClaims() verifies the session JWT locally (against the project's cached public
+  // keys) instead of a network round trip on every request. It also refreshes an
+  // expired session, writing new cookies through setAll above.
+  const { data } = await supabase.auth.getClaims();
+  const user = data?.claims ?? null;
 
   const path = request.nextUrl.pathname;
   const inApp = APP_PREFIXES.some((prefix) => path === prefix || path.startsWith(`${prefix}/`));

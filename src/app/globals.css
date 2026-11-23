@@ -58,9 +58,43 @@
   --shadow-paper: 0 1px 1px rgb(13 19 34 / 0.08), 0 12px 32px -12px rgb(5 8 18 / 0.55);
   --shadow-raised: 0 1px 0 0 rgb(255 255 255 / 0.04) inset, 0 16px 40px -20px rgb(0 0 0 / 0.6);
 
-  /* Motion */
+  /* Motion: one easing family, short durations */
   --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
   --animate-beam-sweep: beam-sweep 900ms var(--ease-out-quint) both;
+  --animate-enter: enter 520ms var(--ease-out-quint) both;
+  --animate-enter-soft: enter-soft 360ms var(--ease-out-quint) both;
+  --animate-shimmer: shimmer 1.6s ease-in-out infinite;
+
+  @keyframes enter {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes enter-soft {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes shimmer {
+    from {
+      background-position: 200% 0;
+    }
+    to {
+      background-position: -200% 0;
+    }
+  }
 
   @keyframes beam-sweep {
     from {
@@ -83,6 +117,7 @@
   }
 
   html {
+    scroll-behavior: smooth;
     background-color: var(--color-night);
     color: var(--color-ink);
     font-family: var(--font-sans);
@@ -158,6 +193,27 @@
     color: var(--color-ink);
     font-weight: 600;
   }
+}
+
+/* Scroll reveal (see src/components/motion/reveal.tsx). Content is visible by default;
+   only elements below the fold are hidden, then revealed as they scroll into view. */
+[data-reveal] {
+  transition:
+    opacity 700ms var(--ease-out-quint),
+    transform 700ms var(--ease-out-quint);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+[data-reveal="hidden"] {
+  opacity: 0;
+  transform: translateY(18px);
+}
+
+/* Loading placeholders */
+@utility skeleton {
+  border-radius: var(--radius-md);
+  background: linear-gradient(90deg, var(--color-slate) 0%, var(--color-slate-raised) 50%, var(--color-slate) 100%);
+  background-size: 200% 100%;
+  animation: var(--animate-shimmer);
 }
 
 @utility tabular {
