@@ -19,8 +19,18 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      # npm 10 can crash resolving a fresh tree ("reading 'edgesOut'"); npm 11 fixes it.
+      - name: Update npm
+        run: npm install -g npm@11
       - name: Install dependencies
         run: npm install --no-audit --no-fund
+      # Until package-lock.json is committed, keep the resolved lockfile from each run.
+      - uses: actions/upload-artifact@v4
+        if: hashFiles('package-lock.json') != ''
+        with:
+          name: package-lock
+          path: package-lock.json
+          retention-days: 7
       - name: Lint
         run: npm run lint
       - name: Unit tests
