@@ -29,8 +29,9 @@ export default function HomePage() {
   return (
     <>
       {/* Hero: the product itself, answerable straight away */}
-      <section className="container-page grid items-center gap-12 pt-14 pb-20 sm:pt-20 lg:grid-cols-[1fr_1.05fr] lg:gap-16 lg:pt-24 lg:pb-28">
-        <div>
+      <section className="container-page grid items-start gap-12 pt-14 pb-20 sm:pt-20 lg:grid-cols-[1fr_1.05fr] lg:gap-16 lg:pt-24 lg:pb-28">
+        {/* Top-aligned so the headline stays put when the card below grows */}
+        <div className="lg:pt-10">
           <h1 className="text-[2.5rem] font-semibold sm:text-5xl lg:text-display">
             Revision that knows what you got wrong.
           </h1>

@@ -23,8 +23,9 @@ Feature statuses shown on the site come from `src/config/features.ts`. Change on
   - It also includes quizzes, progress, flashcards with spaced-repetition state, content reports, classrooms, live-game tables, the XP ledger, achievements and AI usage logs.
   - Nine GCSE subjects are seeded.
 
-### Tested
-- **Unit tests:** scoring, XP and levels, streaks, room codes, answer checking, AI-question validation, display-name rules, environment checks and the open-redirect guard. Config and database consistency is tested in CI.
+### Tested (GitHub Actions, 23 Nov 2026: all green)
+- **Lint and production build:** both pass. The build includes strict type checking.
+- **Unit tests (Vitest):** 72 pass. They cover scoring, XP and levels, streaks, room codes, answer checking, AI-question validation, display-name rules, environment checks, the open-redirect guard, and config/database consistency.
 - **Database security suite (`npm run test:db`):** passes on PostgreSQL 16, and was mutation-checked. It covers:
   - own-data isolation and unreadable answer keys;
   - no client writes to scores, XP, quiz results or rooms;
@@ -32,7 +33,11 @@ Feature statuses shown on the site come from `src/config/features.ts`. Change on
   - content reports filed only as yourself, with no status tampering;
   - question-type consistency and a privilege audit;
   - account deletion cascades.
-- **End-to-end tests (`tests/e2e`):** every public page on desktop and mobile is checked for a single h1, no console errors and no horizontal scroll. They also test answering the sample question, explanation tabs, the redirect from the app to log in, the 404 page and the mobile menu. They run in GitHub Actions on every push.
+- **End-to-end tests (Playwright):** 25 pass across desktop and mobile Chrome, with 1 mobile-only test skipped on desktop.
+  - Every public page is checked for a single h1, no console errors and no horizontal scroll.
+  - They also test answering the sample question, explanation tabs, the redirect from the app to log in, the 404 page and the mobile menu.
+- **Manual check:** the live site was checked in a browser at desktop and phone widths.
+- **Not yet tested:** signing up, logging in, the dashboard and settings against a real Supabase project. These need the Supabase setup below.
 
 ### Needs configuration
 - A Supabase project, with the migrations applied and environment variables set in Vercel. Until then, accounts show a "not switched on" message. See [SETUP.md](SETUP.md).
