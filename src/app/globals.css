@@ -1,0 +1,132 @@
+@import "tailwindcss";
+
+/*
+ * Questlight design tokens.
+ * Every colour, radius, shadow and motion value used by components comes from here,
+ * so the visual identity can be tuned in one place.
+ */
+@theme {
+  /* Surfaces: deep navy → charcoal, layered from back to front */
+  --color-canvas: #080c1a;
+  --color-surface-1: #0f1426;
+  --color-surface-2: #161d35;
+  --color-surface-3: #1f2847;
+  --color-surface-raised: #283358;
+  --color-line: rgb(148 163 214 / 0.14);
+  --color-line-strong: rgb(148 163 214 / 0.28);
+
+  /* Text */
+  --color-ink: #eef1ff;
+  --color-ink-soft: #b4bcdb;
+  --color-ink-muted: #7c86ab;
+  --color-ink-inverse: #0b1020;
+
+  /* Brand accents */
+  --color-lumen-50: #f0eeff;
+  --color-lumen-200: #c9c2ff;
+  --color-lumen-400: #8d7dff;
+  --color-lumen-500: #6f5bff;
+  --color-lumen-600: #5a45f0;
+  --color-lumen-700: #4632c9;
+  --color-azure-400: #4fa3ff;
+  --color-azure-500: #2f86ff;
+  --color-orchid-400: #c084fc;
+  --color-orchid-500: #a855f7;
+
+  /* Learning & gameplay */
+  --color-xp: #ffc857;
+  --color-streak: #ff8a4c;
+  --color-success: #34d399;
+  --color-success-soft: rgb(52 211 153 / 0.14);
+  --color-danger: #fb7185;
+  --color-danger-soft: rgb(251 113 133 / 0.14);
+  --color-warning: #fbbf24;
+
+  /* Answer tiles — always paired with a letter + glyph, never colour alone */
+  --color-answer-a: #ff9f43;
+  --color-answer-b: #22c7b8;
+  --color-answer-c: #ec6fcf;
+  --color-answer-d: #5b9dff;
+
+  /* Subject accents */
+  --color-subject-maths: #5b9dff;
+  --color-subject-english: #ec6fcf;
+  --color-subject-science: #22c7b8;
+  --color-subject-history: #ff9f43;
+  --color-subject-geography: #8bd450;
+
+  /* Typography (font files are wired up with next/font in the root layout) */
+  --font-display: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+
+  /* Shape */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-2xl: 2rem;
+
+  /* Depth */
+  --shadow-card: 0 1px 0 0 rgb(255 255 255 / 0.04) inset, 0 8px 24px -12px rgb(0 0 0 / 0.6);
+  --shadow-raised: 0 1px 0 0 rgb(255 255 255 / 0.06) inset, 0 18px 40px -16px rgb(0 0 0 / 0.7);
+  --shadow-glow: 0 0 0 1px rgb(111 91 255 / 0.4), 0 10px 40px -10px rgb(111 91 255 / 0.55);
+
+  /* Motion */
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring-soft: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --duration-fast: 140ms;
+  --duration-base: 240ms;
+  --duration-slow: 420ms;
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+    --content-max: 72rem;
+  }
+
+  html {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  /* Scores, timers, XP: digits never jitter while they animate */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-lumen-400);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  ::selection {
+    background: rgb(111 91 255 / 0.45);
+  }
+}
+
+/* Respect reduced-motion everywhere, including CSS transitions outside Motion for React */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
