@@ -35,12 +35,18 @@ function Segmented<T extends string | number>({
   return (
     <fieldset>
       <legend className="text-sm font-medium text-ink">{legend}</legend>
-      <div className="mt-2 grid auto-cols-fr grid-flow-col gap-1 rounded-lg bg-deep p-1 shadow-[inset_0_0_0_1px_var(--color-line)]">
+      <div
+        className={cn(
+          "mt-2 grid gap-1 rounded-lg bg-deep p-1 shadow-[inset_0_0_0_1px_var(--color-line)]",
+          // Four longer labels don't fit in one row on a phone.
+          choices.length > 3 ? "grid-cols-2 sm:grid-cols-4" : "auto-cols-fr grid-flow-col",
+        )}
+      >
         {choices.map((choice) => (
           <label
             key={String(choice.value)}
             className={cn(
-              "relative flex h-10 cursor-pointer items-center justify-center rounded-md text-sm font-medium transition-colors duration-200",
+              "relative flex h-10 cursor-pointer items-center justify-center rounded-md px-2 text-sm font-medium transition-colors duration-200",
               value === choice.value ? "bg-slate-raised text-ink shadow-raised" : "text-ink-soft hover:text-ink",
             )}
           >

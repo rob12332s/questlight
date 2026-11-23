@@ -3,7 +3,7 @@
 import { useActionState } from "react";
 import { SubjectIcon } from "@/components/subject-icon";
 import { Checkbox, Field, FormAlert, Input, Select, SubmitButton } from "@/components/ui/form";
-import { EDUCATION_STAGE_LABELS, EDUCATION_STAGES, type EducationStage } from "@/domain/types";
+import { EDUCATION_STAGE_LABELS, EDUCATION_STAGES, LAUNCH_STAGES, type EducationStage } from "@/domain/types";
 import { initialFormState } from "@/features/auth/schemas";
 import { deleteAccount, updateProfile, updateSubjects } from "./actions";
 
@@ -29,12 +29,13 @@ export function ProfileForm({
       <Field label="Display name" hint="What other players see." error={errors.displayName}>
         {(props) => <Input {...props} name="displayName" defaultValue={displayName} maxLength={24} required />}
       </Field>
-      <Field label="Stage" error={errors.educationStage}>
+      <Field label="Stage" hint="Questions are written for GCSE first." error={errors.educationStage}>
         {(props) => (
           <Select {...props} name="educationStage" defaultValue={educationStage ?? "gcse"}>
             {EDUCATION_STAGES.map((stage) => (
               <option key={stage} value={stage}>
                 {EDUCATION_STAGE_LABELS[stage]}
+                {LAUNCH_STAGES.includes(stage) ? "" : " (content coming later)"}
               </option>
             ))}
           </Select>

@@ -102,9 +102,16 @@ export function QuizPlayer({
   }, [finish, isLast]);
 
   // Move focus to "Next" after a reveal, so keyboard users can just press Enter.
+  // On small screens the button can sit below the fold, so bring it into view.
   useEffect(() => {
-    if (result) nextRef.current?.focus({ preventScroll: true });
-  }, [result]);
+    const button = nextRef.current;
+    if (!result || !button) return;
+    button.focus({ preventScroll: true });
+    const rect = button.getBoundingClientRect();
+    if (rect.bottom > window.innerHeight || rect.top < 0) {
+      button.scrollIntoView({ block: "nearest", behavior: reduceMotion ? "auto" : "smooth" });
+    }
+  }, [result, reduceMotion]);
 
   // Keyboard: 1–4 to answer option questions.
   useEffect(() => {

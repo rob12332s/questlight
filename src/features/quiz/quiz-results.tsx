@@ -4,6 +4,7 @@ import { animate, motion, useMotionValue, useReducedMotion, useTransform } from 
 import { Award, Check, X } from "lucide-react";
 import { useEffect } from "react";
 import { ButtonLink } from "@/components/ui/button";
+import { XP_RULES } from "@/domain/progression";
 import type { QuizSummary } from "./actions";
 import type { PlayerQuestion, QuestionResult } from "./types";
 
@@ -131,6 +132,14 @@ export function QuizResults({
             towards your progress.
           </p>
         )}
+        {!historical &&
+          summary.xp.total > 0 &&
+          summary.xp.correctAnswers < summary.correct * XP_RULES.correctAnswer && (
+            <p className="mt-3 text-sm text-ink-muted">
+              Questions you&apos;d already got right in the last 24 hours don&apos;t earn answer XP again, so new questions are
+              worth more than repeats.
+            </p>
+          )}
         {!historical && summary.xp.total === 0 && summary.xp.capped === 0 && (
           <p className="mt-3 text-sm text-ink-muted">
             No XP this time: you&apos;d already earned it for these questions today. Your answers still count towards your progress.
