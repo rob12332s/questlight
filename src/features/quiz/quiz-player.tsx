@@ -6,14 +6,14 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState, type FormEven
 import { AnswerOption, type OptionState } from "@/components/learning/answer-option";
 import { Button } from "@/components/ui/button";
 import { FormAlert } from "@/components/ui/form";
-import { DIFFICULTY_LABELS, type OptionId } from "@/domain/types";
+import { seededShuffle } from "@/domain/shuffle";
+import { DIFFICULTY_LABELS, OPTION_IDS } from "@/domain/types";
 import { cn } from "@/lib/cn";
 import { completeQuiz, reportQuestion, submitAnswer, type QuizSummary } from "./actions";
 import { QuizResults } from "./quiz-results";
 import type { PlayerQuestion, QuestionResult } from "./types";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
-const KEY_TO_OPTION: Record<string, OptionId> = { "1": "A", "2": "B", "3": "C", "4": "D" };
 
 export function QuizPlayer({
   sessionId,
@@ -45,6 +45,15 @@ export function QuizPlayer({
 
   const question = questions[index]!;
   const result = results[question.id];
+  // Multiple-choice options are shown in a per-quiz order, so the right answer
+  // isn't always in the same place. True/false keeps its natural order.
+  const shownOptions = useMemo(
+    () =>
+      question.options && question.type === "multiple_choice"
+        ? seededShuffle(question.options, `${sessionId}/${question.id}`)
+        : question.options,
+    [question, sessionId],
+  );
   const answeredCount = Object.keys(results).length;
   const isLast = index === questions.length - 1;
   const allAnswered = answeredCount === questions.length;
@@ -103,15 +112,16 @@ export function QuizPlayer({
       if (event.metaKey || event.ctrlKey || event.altKey) return;
       const target = event.target as HTMLElement | null;
       if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.tagName === "SELECT")) return;
-      const option = KEY_TO_OPTION[event.key];
-      if (option && question.options?.some((o) => o.id === option) && !results[question.id]) {
+      const position = Number(event.key);
+      const option = Number.isInteger(position) && position >= 1 ? shownOptions?.[position - 1] : undefined;
+      if (option && !results[question.id]) {
         event.preventDefault();
-        void submit(option);
+        void submit(option.id);
       }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [question, results, submit]);
+  }, [question.id, results, shownOptions, submit]);
 
   if (summary) {
     return (
@@ -182,10 +192,11 @@ export function QuizPlayer({
               <ShortAnswer result={result} pending={pending !== null} onSubmit={submit} />
             ) : (
               <div className={cn("mt-5 grid gap-2", question.type === "true_false" && "sm:grid-cols-2")} role="group" aria-label="Answer options">
-                {question.options!.map((option) => (
+                {shownOptions!.map((option, position) => (
                   <AnswerOption
                     key={option.id}
                     option={option}
+                    label={OPTION_IDS[position]!}
                     state={optionState(option.id, result, pending)}
                     disabled={Boolean(result) || pending !== null}
                     onSelect={(id) => void submit(id)}
@@ -219,7 +230,7 @@ export function QuizPlayer({
       )}
 
       <div className="mt-6 flex min-h-12 items-center justify-between gap-3">
-        <p className="text-sm text-ink-muted">{!result && question.options ? "Tip: press 1–4 to answer" : ""}</p>
+        <p className="text-sm text-ink-muted">{!result && shownOptions ? `Tip: press 1–${shownOptions.length} to answer` : ""}</p>
         {result && (
           <Button ref={nextRef} size="lg" onClick={goNext} disabled={finishing}>
             {finishing ? (
@@ -325,8 +336,11 @@ function Feedback({ question, result }: { question: PlayerQuestion; result: Ques
           </>
         ) : (
           <>
-            <X className="h-5 w-5 text-incorrect" aria-hidden strokeWidth={2.5} /> Not quite
-            {correctText && <span className="font-normal text-paper-ink-soft">. The answer is {correctText}.</span>}
+            <X className="h-5 w-5 text-incorrect" aria-hidden strokeWidth={2.5} />
+            <span>
+              Not quite
+              {correctText && <span className="font-normal text-paper-ink-soft">. The answer is {correctText}.</span>}
+            </span>
           </>
         )}
       </p>

@@ -13,11 +13,14 @@ export type OptionState = "idle" | "selected" | "correct" | "incorrect" | "misse
  */
 export function AnswerOption({
   option,
+  label,
   state,
   disabled,
   onSelect,
 }: {
   option: Option;
+  /** Letter shown beside the option; defaults to its id. Differs when options are shuffled. */
+  label?: string;
   state: OptionState;
   disabled: boolean;
   onSelect: (id: Option["id"]) => void;
@@ -68,7 +71,7 @@ export function AnswerOption({
         ) : state === "incorrect" ? (
           <X className="h-4 w-4" strokeWidth={2.5} />
         ) : (
-          option.id
+          (label ?? option.id)
         )}
       </span>
       <span className="flex-1 text-[0.9375rem] text-paper-ink sm:text-base">{option.text}</span>
