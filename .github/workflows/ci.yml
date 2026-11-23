@@ -60,6 +60,10 @@ jobs:
         run: npm run test:e2e
         env:
           E2E_START: production
+      # Artifacts are not always reachable, so also print the page snapshots.
+      - name: Show failure context
+        if: failure()
+        run: find test-results -name error-context.md -exec sh -c 'echo "=== $1"; cat "$1"' _ {} \; || true
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

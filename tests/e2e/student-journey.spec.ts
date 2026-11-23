@@ -84,7 +84,8 @@ test("a student signs up, studies, and their data stays private", async ({ brows
     // The server checks the answer; only then does the Next button appear.
     const next = page.getByRole("button", { name: i < 5 ? "Next question" : "See results" });
     await expect(next).toBeVisible({ timeout: 15_000 });
-    await expect(page.getByRole("alert")).toHaveCount(0);
+    // Scoped to <main>: Next.js adds its own role="alert" route announcer.
+    await expect(page.locator("main").getByRole("alert")).toHaveCount(0);
     await next.click();
   }
   await expect(page.getByRole("heading", { name: "Cell biology: results" })).toBeVisible();
