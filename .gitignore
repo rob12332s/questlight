@@ -1,0 +1,19 @@
+node_modules/
+.next/
+out/
+coverage/
+playwright-report/
+test-results/
+*.tsbuildinfo
+next-env.d.ts
+
+# secrets
+.env
+.env.local
+.env.*.local
+
+# local tooling
+.DS_Store
+.vercel
+supabase/.temp/
+.sandbox/

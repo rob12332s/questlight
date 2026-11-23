@@ -3,7 +3,7 @@
  * so the rules here can be unit tested in isolation and mirrored exactly in SQL.
  */
 
-export const EDUCATION_STAGES = ["primary", "secondary", "gcse", "a_level", "college"] as const;
+export const EDUCATION_STAGES = ["primary", "secondary", "gcse", "a_level", "college", "university"] as const;
 export type EducationStage = (typeof EDUCATION_STAGES)[number];
 
 export const EDUCATION_STAGE_LABELS: Record<EducationStage, string> = {
@@ -12,10 +12,23 @@ export const EDUCATION_STAGE_LABELS: Record<EducationStage, string> = {
   gcse: "GCSE",
   a_level: "A-level",
   college: "College",
+  university: "University",
 };
 
-export const DIFFICULTIES = ["easy", "medium", "hard"] as const;
+/** Stages with real content at launch. Others exist in the data model only. */
+export const LAUNCH_STAGES: readonly EducationStage[] = ["gcse"];
+
+export const DIFFICULTIES = ["foundation", "standard", "challenge"] as const;
 export type Difficulty = (typeof DIFFICULTIES)[number];
+
+export const DIFFICULTY_LABELS: Record<Difficulty, string> = {
+  foundation: "Foundation",
+  standard: "Standard",
+  challenge: "Challenge",
+};
+
+export const QUESTION_TYPES = ["multiple_choice", "true_false", "short_answer"] as const;
+export type QuestionType = (typeof QUESTION_TYPES)[number];
 
 /** Where a question came from. Shown to students so AI content is always labelled. */
 export const QUESTION_SOURCES = ["question_bank", "ai_generated", "teacher_created"] as const;

@@ -1,10 +1,10 @@
 # Questlight
 
-Live quiz battles with friends, solo revision and AI-assisted practice for primary to college students.
+Quizzes, flashcards and live games for GCSE students, connected so that every answer helps decide what to study next.
 
-> **Status: Stage 1 of 6, foundation only.** The domain rules, the database schema and the security rules are built and tested. The UI hasn't been built yet. See [docs/STATUS.md](docs/STATUS.md) for what works today and what doesn't.
+> **Status: Stage 1 of 6 (brand and foundation).** The public site, accounts, the app shell, the database and its security rules are built. Quizzes, flashcards, live games and AI come next. See [docs/STATUS.md](docs/STATUS.md).
 
-"Questlight" is a working name. Change it in `src/config/brand.ts`.
+"Questlight" is a working name ([docs/BRAND.md](docs/BRAND.md)). Change it in `src/config/brand.ts`.
 
 ## Stack
 
@@ -27,7 +27,7 @@ npm run dev                      # http://localhost:3000
 | `npm run typecheck` | Strict TypeScript check |
 | `npm test` | Unit tests (Vitest) |
 | `npm run test:db` | Applies all migrations to a throwaway local Postgres and runs the security/integrity suite (needs PostgreSQL 15+ server binaries) |
-| `npm run test:e2e` | End-to-end tests (Playwright; added from Stage 2) |
+| `npm run test:e2e` | End-to-end tests (Playwright, desktop and mobile) |
 | `npm run check` | Typecheck, lint and unit tests |
 
 ## Project layout
@@ -35,8 +35,8 @@ npm run dev                      # http://localhost:3000
 ```
 src/
   app/              Routes (App Router) and global styles / design tokens
-  components/ui/    Reusable presentation components (Stage 1b)
-  features/         Feature modules: auth, revision, battles, ai, progress
+  components/       Design-system pieces (ui/), logo, learning components
+  features/         Feature modules: auth, settings, app shell, landing, progress
   domain/           Pure business rules: scoring, XP, room codes, validation
   lib/              Env parsing, Supabase clients
   server/           Server-only services (never imported by client code)
@@ -50,6 +50,7 @@ docs/               Setup, architecture, status and known limitations
 
 ## Documentation
 
+- [docs/BRAND.md](docs/BRAND.md): name candidates, visual identity, design rules
 - [docs/SETUP.md](docs/SETUP.md): Supabase, environment variables, Vercel, AI provider
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): layers, security model, multiplayer design
 - [docs/STATUS.md](docs/STATUS.md): stage report, known limitations, items needing professional review

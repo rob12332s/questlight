@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { validateGeneratedBatch, validateGeneratedQuestion } from "@/domain/question-validation";
 
-const request = { topic: "Photosynthesis", difficulty: "medium" as const, count: 3 };
+const request = { topic: "Photosynthesis", difficulty: "standard" as const, count: 3 };
 
 function goodQuestion(overrides: Record<string, unknown> = {}) {
   return {
@@ -17,7 +17,7 @@ function goodQuestion(overrides: Record<string, unknown> = {}) {
     explanation: "Plants absorb carbon dioxide through their stomata and use it to make glucose.",
     wrongOptionNotes: { A: "Oxygen is released as a by-product, not taken in for photosynthesis." },
     topic: "Photosynthesis",
-    difficulty: "medium",
+    difficulty: "standard",
     ...overrides,
   };
 }
@@ -92,7 +92,7 @@ describe("validateGeneratedQuestion", () => {
 
   it("rejects topic or difficulty drift", () => {
     expect(errorsFor(goodQuestion({ topic: "Respiration" }))).toContain("topic does not match the request");
-    expect(errorsFor(goodQuestion({ difficulty: "hard" }))).toContain("difficulty does not match the request");
+    expect(errorsFor(goodQuestion({ difficulty: "challenge" }))).toContain("difficulty does not match the request");
     expect(errorsFor(goodQuestion({ difficulty: "impossible" }))).toContain("difficulty does not match the request");
   });
 

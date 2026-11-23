@@ -18,7 +18,11 @@
    - **Supabase CLI** (recommended): `npx supabase login`, `npx supabase link --project-ref <ref>`, then `npx supabase db push`
    - **SQL editor**: paste each file from `supabase/migrations/` **in filename order** and run it.
 4. **Authentication → Providers → Email**: keep email sign-up enabled. For production, leave "Confirm email" on.
-5. **Authentication → URL Configuration**: set Site URL to your deployed URL, and add `http://localhost:3000/**` to the redirect URLs.
+5. **Authentication → URL Configuration**:
+   - Set **Site URL** to your live address, for example `https://questlight.vercel.app`.
+   - Under **Redirect URLs**, add `https://questlight.vercel.app/auth/callback` and `http://localhost:3000/auth/callback`.
+
+   Confirmation emails link to `/auth/callback`, which signs the student in and sends them to their dashboard.
 
 ## 3. Environment variables
 

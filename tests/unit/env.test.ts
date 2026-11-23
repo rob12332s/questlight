@@ -55,3 +55,15 @@ describe("plan limits", () => {
     }
   });
 });
+
+describe("configuration checks", () => {
+  it("reports whether Supabase and the service role are configured", async () => {
+    const { isSupabaseConfigured, hasServiceRoleKey } = await import("@/lib/env");
+    expect(isSupabaseConfigured({})).toBe(false);
+    expect(
+      isSupabaseConfigured({ NEXT_PUBLIC_SUPABASE_URL: "https://x.supabase.co", NEXT_PUBLIC_SUPABASE_ANON_KEY: "k" }),
+    ).toBe(true);
+    expect(hasServiceRoleKey({ SUPABASE_SERVICE_ROLE_KEY: " " })).toBe(false);
+    expect(hasServiceRoleKey({ SUPABASE_SERVICE_ROLE_KEY: "secret" })).toBe(true);
+  });
+});

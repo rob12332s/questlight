@@ -76,3 +76,18 @@ export function parseAiConfig(source: Source): AiConfig | null {
     timeoutMs,
   };
 }
+
+/** True when the public Supabase settings are present and valid. */
+export function isSupabaseConfigured(source: Source): boolean {
+  try {
+    parsePublicEnv(source);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** True when the server-only service-role key is present (needed for account deletion). */
+export function hasServiceRoleKey(source: Source): boolean {
+  return Boolean(source.SUPABASE_SERVICE_ROLE_KEY?.trim());
+}

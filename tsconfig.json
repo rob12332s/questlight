@@ -10,6 +10,8 @@
     "noFallthroughCasesInSwitch": true,
     "exactOptionalPropertyTypes": false,
     "noEmit": true,
+    "types": ["node"],
+    "noUncheckedSideEffectImports": false,
     "esModuleInterop": true,
     "module": "esnext",
     "moduleResolution": "bundler",
