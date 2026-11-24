@@ -2,7 +2,7 @@
 
 Quizzes, flashcards and live games for GCSE students, connected so that every answer helps decide what to study next.
 
-> **Status: Stage 1 of 6 (brand and foundation).** The public site, accounts, the app shell, the database and its security rules are built. Quizzes, flashcards, live games and AI come next. See [docs/STATUS.md](docs/STATUS.md).
+> **Status: Stage 3 in progress.** Accounts, revision quizzes, flashcards, progress, achievements and live multiplayer games are built and tested. Leaderboards, AI study help and teacher classrooms come next. See [docs/STATUS.md](docs/STATUS.md).
 
 "Questlight" is a working name ([docs/BRAND.md](docs/BRAND.md)). Change it in `src/config/brand.ts`.
 
