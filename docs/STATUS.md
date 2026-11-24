@@ -77,13 +77,41 @@ Feature statuses shown on the site come from `src/config/features.ts`. Change on
 ### Known limitations
 - The question bank is small: about 8 questions per topic, 2 topics per subject. It needs expanding and reviewing by a teacher.
 - There's no profanity filter on display names yet. It's needed before shared leaderboards are switched on.
-- Live games, AI study, classrooms and leaderboards are not built yet. They are shown as "Soon" or "Later".
+- AI study, classrooms and leaderboards are not built yet. They are shown as "Soon" or "Later".
 
-## Next: Stage 3
-1. Live multiplayer: room codes, lobby, real-time rounds and results.
-2. Leaderboards (friends, weekly, classroom), with a display-name filter first.
-3. An AI study assistant that only switches on when an API key is configured.
-4. Teacher classrooms.
+## Stage 3 (part 1): live games
+
+### Built
+- **Rooms:** a host picks a subject or topic, difficulty, length and time per question, and gets a six-character code plus a shareable link (`/play?code=…`). Up to 40 players.
+- **Gameplay:**
+  - A lobby that updates as people join.
+  - A 3-second countdown, then the same question for everyone with a timer and an "answered" counter.
+  - Answers are locked in, then revealed together with the explanation and standings.
+  - The host moves on; if the host goes quiet for 15 seconds after a reveal, anyone can.
+  - Final results show a podium, full standings and XP earned.
+- **Server rules (migration 0005):**
+  - Timing, correctness and scores are decided by the database: 100 points plus up to 50 for speed.
+  - The question order and answers are never readable by players.
+  - Join attempts are rate limited, so codes can't be guessed.
+  - XP: 20 for finishing, plus 30, 20 or 10 for the top three. At most 10 rewarded games a day.
+  - Achievements: "Into the room" and "Top of the room".
+- **Live updates:** Supabase Realtime, falling back to polling if Realtime isn't connected. Clocks are aligned with the server, so countdowns match the deadlines.
+
+### Tested (24 Nov 2026)
+- **Database suite (`live_games.test.sql`):** joining, host-only controls, hidden answers, timing and score parity, early close when everyone has answered, late answers refused, the stuck-host fallback, XP paid once, leaving, no direct writes, and rate limiting.
+- **Unit tests:** game screen state, standings and clock alignment. 121 unit tests pass in CI.
+- **End-to-end (CI, desktop and mobile Chrome):** two students sign up, one hosts, the other joins with the shared link, and they play all 5 rounds with live updates and see final results with XP. Someone outside the game can't open it. 31 end-to-end tests pass in all.
+- **Live site:**
+  - Migration applied and checked: functions, permissions, Realtime tables and RLS on every table.
+  - A lobby was created and Realtime was confirmed connected; the room was then closed.
+  - The wrong-code message was checked at phone width.
+  - A full game on the live site needs two real accounts, so it hasn't been played there yet.
+
+## Next
+1. Leaderboards (friends, weekly, classroom), with a display-name filter first.
+2. An AI study assistant that only switches on when an API key is configured.
+3. Teacher classrooms (class-only games, where the host doesn't play).
+4. More questions, reviewed by a teacher.
 
 ## Needs adult and professional review before use with schools or before payments
 - UK GDPR and the ICO Children's Code: a DPIA, lawful basis, retention periods, and the privacy notice wording.
