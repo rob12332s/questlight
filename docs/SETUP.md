@@ -73,3 +73,22 @@ Teacher accounts can create classes and host class games. They are set by the si
 3. They refresh the site and see **Classes you teach** on the Classes page.
 
 To undo it, run the same statement with `'student'`.
+
+
+## Switch on AI study help (optional; uses a paid AI service)
+
+AI study help (explanations, practice questions, AI flashcards) stays off until you add these in **Vercel → questlight → Settings → Environment Variables**, then redeploy:
+
+| Name | Value |
+| --- | --- |
+| `AI_PROVIDER` | `anthropic`, `openai` or `gemini` |
+| `AI_API_KEY` | Your API key from that provider (mark it **Sensitive**) |
+| `AI_MODEL` | Optional. A model name from your provider; otherwise a small, low-cost default is used |
+
+- The key is only used on the server and never reaches the browser.
+- Every student has a daily allowance (20 explanations, 30 practice questions and 5 AI flashcard decks, refilling after 24 hours), so costs stay predictable. Set a monthly spending limit with your AI provider as well.
+- Never paste the key into a chat or commit it to GitHub.
+
+## Review content reports
+
+Students can report a question that looks wrong. Reports are stored in the `content_reports` table: open **Supabase → Table Editor → content_reports** to read them, and change `status` to `resolved` or `dismissed` once handled.

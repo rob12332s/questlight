@@ -163,10 +163,42 @@ Feature statuses shown on the site come from `src/config/features.ts`. Change on
   - a multiple-choice-only quiz on a new topic, played through;
   - light theme, teal accent and larger text checked, then reset to default.
 
+## Stage 4: AI study help and work set by teachers
+
+### Built
+- **AI study (`/ai-study`, migration 0009):**
+  - Explanations at three levels, AI practice questions, and AI flashcard decks.
+  - Calls the provider (Anthropic, OpenAI or Gemini) from the server only, with every reply checked strictly.
+  - AI questions use the same validator as the question bank. AI practice never gives XP or changes progress; AI decks are labelled.
+  - Daily allowances are enforced in the database, and every claim counts.
+  - Shows a clear "not switched on" state until the site owner adds a key; the features page says "Built, not switched on".
+- **Work set by teachers (migration 0010):**
+  - Teachers set a topic quiz with a due date (end of that UK day).
+  - Students see it on their dashboard and class page.
+  - Teachers see each student's status (done, done late, not done) and best score.
+- **CI:** Supabase CLI setup retries when GitHub's API is rate limited.
+- **Privacy page:** now says exactly what teachers and classmates can see, and that leaderboards are opt-in.
+
+### Tested (24 Nov 2026)
+- **Database suites:**
+  - AI allowances: limits, per student, renewal, no direct edits, and failed requests still counting;
+  - assignments: teacher-only, due-date rules, student visibility, done or late status with best score, removal, archived classes.
+- **Unit tests:** 201 pass. These cover prompts and reply parsing, the test stand-in AI, plan-limit parity with the database, and due-date wording.
+- **End-to-end (desktop and mobile):**
+  - AI study with a deterministic stand-in AI: an explanation, a 5-question practice set (no XP), a 10-card AI deck, and allowances going down;
+  - the classroom run now sets work, the student completes it from the dashboard, and the teacher sees "1 of 1 done".
+- **Live site:**
+  - migrations 0009 and 0010 applied and checked;
+  - AI study shows "not switched on" (no key configured), and the features page says so.
+
+### Needs configuration
+- **AI study:** an AI provider key (see [SETUP.md](SETUP.md)). Until then it stays off and costs nothing.
+- **Account deletion:** the Supabase secret key.
+
 ## Next
-1. An AI study assistant that only switches on when an API key is configured.
-2. Teachers setting work: assign a topic quiz to a class with a due date.
-3. More questions per topic, reviewed by a teacher.
+1. A friends list and friend invites to games.
+2. More questions per topic, reviewed by a teacher.
+3. Paid plans, only after a legal and privacy review.
 
 ## Needs adult and professional review before use with schools or before payments
 - UK GDPR and the ICO Children's Code: a DPIA, lawful basis, retention periods, and the privacy notice wording.
