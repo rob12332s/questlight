@@ -46,7 +46,7 @@ export const FEATURES: FeatureEntry[] = [
       "Scores, timing and answers controlled by the server",
       "Rejoin if your connection drops",
     ],
-    status: "in_development",
+    status: "available",
   },
   {
     id: "progress",

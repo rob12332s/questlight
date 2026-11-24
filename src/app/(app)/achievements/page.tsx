@@ -8,9 +8,6 @@ import { getCurrentStudent } from "@/server/session";
 
 export const metadata: Metadata = { title: "Achievements" };
 
-/** Achievements that need a feature that isn't live yet, so nobody chases them. */
-const NEEDS_LIVE_GAMES = new Set(["first_battle", "battle_winner"]);
-
 export default async function AchievementsPage() {
   const student = await getCurrentStudent();
   if (!student) redirect("/login?next=/achievements");
@@ -54,9 +51,7 @@ export default async function AchievementsPage() {
                   <p className="tabular mt-2 text-xs text-ink-muted">
                     {when
                       ? `Earned ${new Date(when).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}, +${a.xp_reward} XP`
-                      : NEEDS_LIVE_GAMES.has(a.id)
-                        ? `+${a.xp_reward} XP. Unlocks when live games open.`
-                        : `+${a.xp_reward} XP`}
+                      : `+${a.xp_reward} XP`}
                     <span className="sr-only">{when ? "" : ", not earned yet"}</span>
                   </p>
                 </div>

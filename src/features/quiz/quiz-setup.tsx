@@ -2,7 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { FormAlert, SubmitButton } from "@/components/ui/form";
-import { cn } from "@/lib/cn";
+import { Segmented } from "@/components/ui/segmented";
 import { startQuiz, type StartQuizState } from "./actions";
 
 interface Subject {
@@ -18,53 +18,6 @@ const DIFFICULTY_CHOICES = [
   { value: "challenge", label: "Challenge" },
 ] as const;
 const LENGTHS = [5, 8, 10] as const;
-
-function Segmented<T extends string | number>({
-  name,
-  legend,
-  choices,
-  value,
-  onChange,
-}: {
-  name: string;
-  legend: string;
-  choices: ReadonlyArray<{ value: T; label: string }>;
-  value: T;
-  onChange: (v: T) => void;
-}) {
-  return (
-    <fieldset>
-      <legend className="text-sm font-medium text-ink">{legend}</legend>
-      <div
-        className={cn(
-          "mt-2 grid gap-1 rounded-lg bg-deep p-1 shadow-[inset_0_0_0_1px_var(--color-line)]",
-          // Four longer labels don't fit in one row on a phone.
-          choices.length > 3 ? "grid-cols-2 sm:grid-cols-4" : "auto-cols-fr grid-flow-col",
-        )}
-      >
-        {choices.map((choice) => (
-          <label
-            key={String(choice.value)}
-            className={cn(
-              "relative flex h-10 cursor-pointer items-center justify-center rounded-md px-2 text-sm font-medium transition-colors duration-200",
-              value === choice.value ? "bg-slate-raised text-ink shadow-raised" : "text-ink-soft hover:text-ink",
-            )}
-          >
-            <input
-              type="radio"
-              name={name}
-              value={String(choice.value)}
-              checked={value === choice.value}
-              onChange={() => onChange(choice.value)}
-              className="sr-only"
-            />
-            {choice.label}
-          </label>
-        ))}
-      </div>
-    </fieldset>
-  );
-}
 
 export function QuizSetup({ subjects, initialTopicId }: { subjects: Subject[]; initialTopicId?: string }) {
   const [state, action] = useActionState<StartQuizState, FormData>(startQuiz, {});
