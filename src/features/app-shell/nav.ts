@@ -1,6 +1,9 @@
 import {
   BookOpenCheck,
   Brain,
+  Crown,
+  Library,
+  Map,
   Gauge,
   GraduationCap,
   Layers,
@@ -20,10 +23,14 @@ export interface NavItem {
   icon: LucideIcon;
   /** Items backed by a feature that isn't available yet render disabled, with an explanation. */
   featureId?: string;
+  /** Small tag shown after the label. */
+  tag?: "pro";
 }
 
 export const PRIMARY_NAV: NavItem[] = [
   { href: "/dashboard", label: "Dashboard", icon: Gauge },
+  { href: "/library", label: "Exam Coach", icon: Library },
+  { href: "/exam-map", label: "My Exam Map", icon: Map },
   { href: "/learn", label: "Learn", icon: BookOpenCheck, featureId: "quizzes" },
   { href: "/quizzes", label: "Quizzes", icon: ListChecks, featureId: "quizzes" },
   { href: "/flashcards", label: "Flashcards", icon: Layers, featureId: "flashcards" },
@@ -34,7 +41,10 @@ export const PRIMARY_NAV: NavItem[] = [
   { href: "/achievements", label: "Achievements", icon: Medal, featureId: "progression" },
 ];
 
-export const SECONDARY_NAV: NavItem[] = [{ href: "/settings", label: "Profile and settings", icon: Settings }];
+export const SECONDARY_NAV: NavItem[] = [
+  { href: "/pro", label: "Questlight Pro", icon: Crown, tag: "pro" },
+  { href: "/settings", label: "Profile and settings", icon: Settings },
+];
 
 export function navStatus(item: NavItem): FeatureStatus {
   if (!item.featureId) return "available";

@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 /** Routes that need a signed-in student. Everything else is public. */
-const APP_PREFIXES = ["/dashboard", "/settings", "/learn", "/quizzes", "/flashcards", "/achievements", "/play", "/leaderboards", "/classes", "/ai-study"];
+const APP_PREFIXES = ["/dashboard", "/settings", "/learn", "/quizzes", "/flashcards", "/achievements", "/play", "/leaderboards", "/classes", "/ai-study", "/library", "/coach", "/exam-map", "/pro", "/admin"];
 const AUTH_PAGES = ["/login", "/signup"];
 
 /**
@@ -60,6 +60,11 @@ export const config = {
     "/leaderboards/:path*",
     "/classes/:path*",
     "/ai-study/:path*",
+    "/library/:path*",
+    "/coach/:path*",
+    "/exam-map/:path*",
+    "/pro/:path*",
+    "/admin/:path*",
     "/settings/:path*",
     "/learn/:path*",
     "/quizzes/:path*",

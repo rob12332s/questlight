@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Challenges, type Challenge } from "@/features/play/challenges";
 import { HostGameForm, JoinGameForm } from "@/features/play/play-forms";
 import { getCurriculum } from "@/server/learning";
 import { getOpenRooms } from "@/server/play";
@@ -12,6 +13,25 @@ export default async function PlayPage({ searchParams }: { searchParams: Promise
   const student = await getCurrentStudent();
   if (!student) redirect("/login?next=/play");
   const [{ code }, curriculum, rooms] = await Promise.all([searchParams, getCurriculum(), getOpenRooms()]);
+
+  // Ready-made topic challenges: one tap creates a room to share.
+  const scope = (subject: string, topic?: string): string | null => {
+    const s = curriculum.find((x) => x.slug === subject);
+    if (!s) return null;
+    if (!topic) return s.topics.length > 0 ? `${s.id}:all` : null;
+    const t = s.topics.find((x) => x.slug === topic);
+    return t ? `${s.id}:${t.id}` : null;
+  };
+  const challenges = (
+    [
+      { title: "Algebra challenge", detail: "Equations and expressions, head to head.", scope: scope("maths", "algebra-equations-expressions") },
+      { title: "Biology knowledge challenge", detail: "Every biology topic in the question bank.", scope: scope("biology") },
+      { title: "English analysis challenge", detail: "Spot the technique and its effect.", scope: scope("english-language", "language-techniques") },
+      { title: "Forces challenge", detail: "Physics: forces and motion.", scope: scope("physics", "forces") },
+      { title: "History challenge", detail: "Every history topic in the question bank.", scope: scope("history") },
+      { title: "Mixed GCSE challenge", detail: "Questions from every subject.", scope: curriculum.length > 0 ? "mixed" : null },
+    ] satisfies { title: string; detail: string; scope: string | null }[]
+  ).filter((c): c is Challenge => c.scope !== null);
 
   return (
     <div>
@@ -45,6 +65,16 @@ export default async function PlayPage({ searchParams }: { searchParams: Promise
               </li>
             ))}
           </ul>
+        </section>
+      )}
+
+      {challenges.length > 0 && (
+        <section aria-labelledby="challenges" className="mt-10 animate-enter">
+          <h2 id="challenges" className="text-lg font-semibold">
+            Topic challenges
+          </h2>
+          <p className="mt-1 text-sm text-ink-muted">Start a room in one tap, then share the code with friends.</p>
+          <Challenges challenges={challenges} />
         </section>
       )}
 

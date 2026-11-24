@@ -16,6 +16,46 @@ export interface FeatureEntry {
 
 export const FEATURES: FeatureEntry[] = [
   {
+    id: "exam-coach",
+    name: "Exam Answer Coach",
+    summary: "Learn how to turn knowledge into marks: a worked example you solve step by step, hints while you practise, then exam-style questions with a mark scheme.",
+    details: [
+      "Seven ways in: from the beginning, how to answer, worked example, hints, test, technique, lost marks",
+      "Worked examples never give the answer away; you choose each next step",
+      "Marks are indicative and say so; written answers are checked against a mark scheme",
+    ],
+    status: "available",
+  },
+  {
+    id: "gcse-library",
+    name: "GCSE library",
+    summary: "Over 100 topics and skills for each of eight GCSE subjects, labelled by board, tier and how far each one is verified and written.",
+    details: [
+      "Choose your exam board, tier and set texts in settings",
+      "Every topic says whether it has a full lesson, quiz practice or is still being written",
+      "Board-specific topics are only tagged to boards they genuinely belong to",
+    ],
+    status: "available",
+  },
+  {
+    id: "exam-map",
+    name: "My Exam Map",
+    summary: "Strongest and weakest topics, recurring mistakes and next steps, built from your own independent answers.",
+    details: [
+      "Mastery needs strong results on separate days, never one lucky answer",
+      "Every suggestion says why it was made",
+      "No grade predictions",
+    ],
+    status: "available",
+  },
+  {
+    id: "pro",
+    name: "Questlight Pro",
+    summary: "Every topic and the complete Exam Answer Coach. Checkout will need a parent or guardian and isn't open yet.",
+    details: ["Free plan: a starter topic in every subtopic and 5 coach lessons a day", "Pro access is checked on the server", "No payments are taken yet"],
+    status: "in_development",
+  },
+  {
     id: "quizzes",
     name: "Revision quizzes",
     summary: "Pick a subject, topic, difficulty and length. One question at a time, with an explanation after each answer.",

@@ -12,10 +12,10 @@ export interface PlayFormState {
 }
 
 const createSchema = z.object({
-  // "<subjectId>:all" for a whole subject, or "<subjectId>:<topicId>".
+  // "<subjectId>:all" for a whole subject, "<subjectId>:<topicId>", or "mixed" for every subject.
   scope: z
     .string()
-    .regex(/^[0-9a-f-]{36}:([0-9a-f-]{36}|all)$/i, "Choose a subject or topic."),
+    .regex(/^([0-9a-f-]{36}:([0-9a-f-]{36}|all)|mixed)$/i, "Choose a subject or topic."),
   difficulty: z.union([z.enum(DIFFICULTIES), z.literal("mixed")]),
   count: z.coerce.number().int().min(3).max(20),
   seconds: z.coerce.number().int().min(10).max(60),
@@ -36,7 +36,7 @@ export async function createGame(_prev: PlayFormState, formData: FormData): Prom
   });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Check your choices." };
 
-  const [subjectId, topic] = parsed.data.scope.split(":") as [string, string];
+  const [subjectId, topic] = parsed.data.scope === "mixed" ? [null, "all"] : (parsed.data.scope.split(":") as [string, string]);
   const supabase = await getServerSupabase();
   const { data, error } = await supabase.rpc("create_room", {
     p_subject: subjectId,

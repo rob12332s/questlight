@@ -31,10 +31,10 @@ export type PracticeState = { error?: string; result?: { topic: string; question
 export type FlashcardState = { error?: string };
 
 const OFF = "AI study help isn't switched on for this site yet.";
-const LIMIT: Record<RequestType, string> = {
-  explanation: "You've used today's 20 explanations. They reset 24 hours after you used them.",
-  questions: "You've used today's 30 AI practice questions. They reset 24 hours after you used them.",
-  flashcards: "You've made 5 AI flashcard decks today. You can make more tomorrow.",
+const LIMIT: Record<RequestType, (limit: number) => string> = {
+  explanation: (n) => `You've used today's ${n} explanations. They reset 24 hours after you used them.`,
+  questions: (n) => `You've used today's ${n} AI practice questions. They reset 24 hours after you used them.`,
+  flashcards: (n) => `You've made ${n} AI flashcard decks today. You can make more tomorrow.`,
 };
 const FAILED = "The AI helper didn't respond properly. Try again in a moment.";
 
@@ -68,9 +68,9 @@ async function runAi<T>(
   const ctx: TopicContext = { subject: t.subjects?.name ?? "GCSE", topic: t.name };
 
   const { data: claim, error: claimError } = await supabase.rpc("claim_ai_request", { p_type: type, p_items: items });
-  const c = claim as { ok?: boolean; log_id?: string } | null;
+  const c = claim as { ok?: boolean; log_id?: string; limit?: number } | null;
   if (claimError || !c) return { ok: false, error: "Something went wrong. Try again." };
-  if (!c.ok || !c.log_id) return { ok: false, error: LIMIT[type] };
+  if (!c.ok || !c.log_id) return { ok: false, error: LIMIT[type](c.limit ?? 0) };
 
   try {
     const reply = await callModel(config, build(ctx));

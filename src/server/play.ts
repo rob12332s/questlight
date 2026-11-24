@@ -32,6 +32,6 @@ export async function getOpenRooms(): Promise<OpenRoom[]> {
     roomCode: r.room_code,
     status: r.status,
     hostId: r.host_id,
-    name: r.topics?.name ?? r.subjects?.name ?? "Live game",
+    name: r.topics?.name ?? r.subjects?.name ?? "Mixed GCSE challenge",
   }));
 }

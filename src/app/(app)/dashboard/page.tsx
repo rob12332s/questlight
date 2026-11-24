@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ArrowRight, Check, Circle, ClipboardList, Flame, Layers, ListChecks, Swords, Trophy } from "lucide-react";
+import { ArrowRight, Check, Circle, ClipboardList, Flame, Layers, Library, ListChecks, Map as MapIcon, Swords, Trophy } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { SubjectIcon } from "@/components/subject-icon";
@@ -10,9 +10,11 @@ import { dueText } from "@/domain/due-dates";
 import { currentStreak, levelFromXp } from "@/domain/progression";
 import { recommendNext, type TopicFacts } from "@/domain/recommendations";
 import { EDUCATION_STAGE_LABELS } from "@/domain/types";
+import { ProPanel } from "@/features/pro/pro-panel";
 import { LevelProgress } from "@/features/progress/level-progress";
 import { cn } from "@/lib/cn";
 import { getServerSupabase } from "@/lib/supabase/server";
+import { getCourses, getLibrary, getPlan } from "@/server/library";
 import { getActivityDays, getCurriculum, getRecentQuizzes, getTopicProgress, todayInLondon } from "@/server/learning";
 import { getCurrentStudent } from "@/server/session";
 import { serverNowMs } from "@/server/time";
@@ -41,6 +43,9 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     getActivityDays(student.userId),
     supabase.rpc("get_my_assignments"),
   ]);
+  const [courses, plan, library] = await Promise.all([getCourses(student.userId), getPlan(), getLibrary()]);
+  const lessonCount = library.filter((t) => t.contentStatus === "lesson").length;
+  const coursesSet = courses.size > 0 && [...courses.values()].every((c) => c.board);
   const now = serverNowMs();
   const pendingWork = ((workResult.data ?? []) as Array<{
     assignment_id: string;
@@ -84,6 +89,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const steps = [
     { done: true, label: "Create your account" },
     { done: subjects.length > 0, label: "Choose your subjects", href: "/settings#subjects" },
+    { done: coursesSet, label: "Add your exam boards and tiers", href: "/settings#courses" },
     { done: recent.length > 0, label: "Finish your first quiz", href: "/quizzes" },
   ];
   const showSteps = steps.some((s) => !s.done);
@@ -111,10 +117,33 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
             {subjects.length > 0 && `, ${subjects.length} subject${subjects.length === 1 ? "" : "s"}`}
           </p>
         </div>
-        <ButtonLink href="/quizzes" size="lg">
-          Start a quiz <ArrowRight className="h-4 w-4" aria-hidden />
+        <ButtonLink href="/library" size="lg">
+          Open the Exam Coach <ArrowRight className="h-4 w-4" aria-hidden />
         </ButtonLink>
       </header>
+
+      <section aria-labelledby="coach-heading" className="mt-8 grid animate-enter gap-3 sm:grid-cols-2">
+        <Link
+          href="/library"
+          className="group relative overflow-hidden rounded-2xl border border-beam/30 bg-beam-wash p-5 transition-colors hover:border-beam"
+        >
+          <Library className="h-6 w-6 text-beam-bright" aria-hidden strokeWidth={1.75} />
+          <h2 id="coach-heading" className="mt-3 text-lg font-semibold">
+            Exam Answer Coach
+          </h2>
+          <p className="mt-1 text-sm leading-relaxed text-ink-soft">
+            Learn how to turn what you know into marks: worked examples step by step, hints, then exam-style questions. {lessonCount} full
+            lessons ready.
+          </p>
+        </Link>
+        <Link href="/exam-map" className="group rounded-2xl border border-line bg-deep p-5 transition-colors hover:border-line-strong">
+          <MapIcon className="h-6 w-6 text-ink-soft" aria-hidden strokeWidth={1.75} />
+          <h2 className="mt-3 text-lg font-semibold">My Exam Map</h2>
+          <p className="mt-1 text-sm leading-relaxed text-ink-soft">
+            Strongest and weakest topics, recurring mistakes, and what to do next — with the reason for each suggestion.
+          </p>
+        </Link>
+      </section>
 
       <nav aria-label="Quick actions" className="mt-8 animate-enter">
         <ul className="grid grid-cols-2 gap-2.5 xl:grid-cols-4">
@@ -314,7 +343,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
             {subjects.map((subject) => (
               <li key={subject.slug}>
                 <Link
-                  href={`/learn#${subject.slug}`}
+                  href={`/library/${subject.slug}`}
                   style={subjectStyle(subject.slug)}
                   className="flex items-center gap-3 bg-night p-4 transition-colors hover:bg-deep"
                 >
@@ -322,13 +351,15 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                     <SubjectIcon slug={subject.slug} className="h-[18px] w-[18px]" />
                   </span>
                   <span className="flex-1">{subject.name}</span>
-                  <span className="text-xs text-ink-muted">{subject.topics.length} topics</span>
+                  <span className="text-xs text-ink-muted">{library.filter((t) => t.subjectId === subject.id).length} topics</span>
                 </Link>
               </li>
             ))}
           </ul>
         )}
       </section>
+
+      {!plan.pro && <ProPanel className="mt-10" />}
     </div>
   );
 }

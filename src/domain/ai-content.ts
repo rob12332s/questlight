@@ -193,6 +193,13 @@ export function mockReply(prompt: Prompt): string {
       })),
     });
   }
+  if (prompt.user.includes("Mark scheme points:")) {
+    return JSON.stringify({
+      strengths: "Test helper: you made a relevant point.",
+      missing: "Test helper: add more detail from the mark scheme.",
+      nextStep: "Test helper: try the question again using the method.",
+    });
+  }
   const count = Number(prompt.user.match(/Write (\d+) revision/)?.[1] ?? "5");
   return JSON.stringify({
     cards: Array.from({ length: count }, (_, i) => ({ front: `Test card ${i + 1} on ${topic}`, back: `Answer ${i + 1}` })),

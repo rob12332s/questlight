@@ -55,8 +55,8 @@ export default async function GamePage({ params }: { params: Promise<{ roomId: s
   return (
     <GameRoom
       userId={student.userId}
-      title={topics?.name ?? subjects?.name ?? "Live game"}
-      subtitle={topics ? (subjects?.name ?? "") : "Whole subject"}
+      title={topics?.name ?? subjects?.name ?? "Mixed GCSE challenge"}
+      subtitle={topics ? (subjects?.name ?? "") : subjects ? "Whole subject" : "Every subject"}
       initial={{
         room,
         players: (players ?? []) as GamePlayerRow[],

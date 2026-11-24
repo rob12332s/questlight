@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { courseOptions } from "@/content/library";
 import { AppearanceSettings } from "@/features/settings/appearance-settings";
+import { CourseForm } from "@/features/settings/course-form";
 import { DeleteAccountForm, ProfileForm, SubjectsForm } from "@/features/settings/settings-forms";
 import { hasServiceRoleKey } from "@/lib/env";
 import { getServerSupabase } from "@/lib/supabase/server";
+import { getCourses } from "@/server/library";
 import { getCurrentStudent } from "@/server/session";
 
 export const metadata: Metadata = { title: "Profile and settings" };
@@ -33,6 +36,7 @@ export default async function SettingsPage() {
   ]);
   const subjects = (subjectsResult.data ?? []) as Array<{ id: string; slug: string; name: string }>;
   const selected = ((chosenResult.data ?? []) as Array<{ subject_id: string }>).map((row) => row.subject_id);
+  const courses = await getCourses(student.userId);
 
   return (
     <div>
@@ -61,6 +65,35 @@ export default async function SettingsPage() {
             <p className="text-sm text-ink-soft">Subjects couldn&apos;t be loaded. Refresh the page to try again.</p>
           ) : (
             <SubjectsForm subjects={subjects} selected={selected} />
+          )}
+        </Section>
+
+        <Section
+          id="courses"
+          title="Your courses"
+          description="Exam board, tier and set texts for each subject. The Exam Coach library and your Exam Map follow these. Change them any time."
+        >
+          {selected.length === 0 ? (
+            <p className="text-sm text-ink-soft">Choose your subjects above first.</p>
+          ) : (
+            <div className="space-y-4">
+              {subjects
+                .filter((s) => selected.includes(s.id))
+                .map((s) => {
+                  const c = courses.get(s.id);
+                  return (
+                    <CourseForm
+                      key={s.id}
+                      subject={s}
+                      board={c?.board ?? null}
+                      tier={c?.tier ?? null}
+                      options={c?.options ?? []}
+                      confidence={c?.confidence ?? null}
+                      available={courseOptions(s.slug)}
+                    />
+                  );
+                })}
+            </div>
           )}
         </Section>
 
