@@ -43,7 +43,6 @@ Feature statuses shown on the site come from `src/config/features.ts`. Change on
 - A Supabase project, with the migrations applied and environment variables set in Vercel. Until then, accounts show a "not switched on" message. See [SETUP.md](SETUP.md).
 
 ### Known limitations
-- There's no profanity filter on display names yet. It's needed before shared leaderboards are switched on.
 - Quizzes, flashcards, live games, AI study and leaderboards are not built yet. They appear as disabled navigation and "In development" or "Planned" on the features page.
 
 ## Stage 2: core student experience
@@ -76,8 +75,7 @@ Feature statuses shown on the site come from `src/config/features.ts`. Change on
 
 ### Known limitations
 - The question bank is small: about 8 questions per topic, 2 topics per subject. It needs expanding and reviewing by a teacher.
-- There's no profanity filter on display names yet. It's needed before shared leaderboards are switched on.
-- AI study, classrooms and leaderboards are not built yet. They are shown as "Soon" or "Later".
+- AI study and classrooms are not built yet. They are shown as "Soon" or "Later".
 
 ## Stage 3 (part 1): live games
 
@@ -107,11 +105,32 @@ Feature statuses shown on the site come from `src/config/features.ts`. Change on
   - The wrong-code message was checked at phone width.
   - A full game on the live site needs two real accounts, so it hasn't been played there yet.
 
+## Stage 3 (part 2): leaderboards and the display-name filter
+
+### Built
+- **Display-name filter (migration 0006):**
+  - Clearly offensive names are refused at sign-up and when a name is changed, including disguised spellings such as "f.u.c.k", "5h1t" or "BigDick".
+  - Short words only match as whole words, so names like Hancock, Dickens, Arsenal and Bob are fine.
+  - Names from before the filter never block XP or other updates; leaderboards hide them instead.
+  - The term list is shared between the app and the database; a unit test checks they match.
+- **Leaderboards (`/leaderboards`):**
+  - This week (XP since Monday, UK time), All time, and Played with (people you've finished a live game with).
+  - Students only appear if they choose to; new accounts start hidden. A one-click switch shows or hides your name.
+  - While hidden, you still see where you'd place, without changing anyone else's place.
+
+### Tested (24 Nov 2026)
+- **Database suite (`leaderboards.test.sql`):** filter samples, sign-up fallback, refused renames, opt-in, weekly window, hidden placement, offensive names hidden, and "played with" both ways.
+- **Unit tests:** filter samples and parity with the database term list. 152 unit tests pass in CI.
+- **End-to-end (desktop and mobile):** after the two-player game, the friend is hidden by default and opts in. The host's "Played with" board then lists both players.
+- **Live site:**
+  - Migration applied and checked: filter results, the name trigger, the hidden default, permissions, and RLS on every table. No existing names fail the filter.
+  - All three boards were checked at desktop and phone widths.
+- **Note:** accounts made before this change keep their previous setting (shown).
+
 ## Next
-1. Leaderboards (friends, weekly, classroom), with a display-name filter first.
-2. An AI study assistant that only switches on when an API key is configured.
-3. Teacher classrooms (class-only games, where the host doesn't play).
-4. More questions, reviewed by a teacher.
+1. An AI study assistant that only switches on when an API key is configured.
+2. Teacher classrooms (class codes, class-only games, class leaderboards).
+3. More questions, reviewed by a teacher.
 
 ## Needs adult and professional review before use with schools or before payments
 - UK GDPR and the ICO Children's Code: a DPIA, lawful basis, retention periods, and the privacy notice wording.
