@@ -67,6 +67,8 @@ test("a student signs up, studies, and their data stays private", async ({ brows
   await page.getByRole("radio", { name: /^Cell biology/ }).check({ force: true });
   await page.getByRole("radio", { name: "5", exact: true }).check({ force: true });
   await expect(page.getByText(/5 questions on/)).toBeVisible();
+  // App pages must never scroll sideways, especially on phones.
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   await page.getByRole("button", { name: "Start quiz" }).click();
   await expect(page).toHaveURL(/\/quizzes\/[0-9a-f-]{36}$/);
   const quizUrl = page.url();

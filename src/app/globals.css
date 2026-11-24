@@ -380,11 +380,13 @@
 .room-glow {
   position: relative;
   isolation: isolate;
+  /* The glow may spill left and up, but must never widen the page (no sideways scroll on phones). */
+  overflow-x: clip;
 }
 .room-glow::before {
   content: "";
   position: absolute;
-  inset: -6rem -4rem auto;
+  inset: -6rem 0 auto -4rem;
   height: 22rem;
   z-index: -1;
   pointer-events: none;
