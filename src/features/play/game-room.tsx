@@ -1,5 +1,6 @@
 "use client";
 
+import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Check, Copy, Crown, Loader2, LogOut, Users, X } from "lucide-react";
 import Link from "next/link";
@@ -28,6 +29,7 @@ import {
 import { gameErrorMessage } from "./messages";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
+type Change = RealtimePostgresChangesPayload<Record<string, unknown>>;
 const ROOM_COLUMNS = "id, room_code, host_id, status, current_round, question_count, seconds_per_question";
 const PLAYER_COLUMNS = "player_id, display_name, score, correct_count, total_correct_ms, connection_status";
 const ROUND_COLUMNS =
@@ -115,21 +117,21 @@ function useLiveGame(initial: Initial) {
       if (cancelled) return;
       channel = supabase
         .channel(`room:${roomId}`)
-        .on("postgres_changes", { event: "*", schema: "public", table: "game_rooms", filter: `id=eq.${roomId}` }, (payload) => {
+        .on("postgres_changes", { event: "*", schema: "public", table: "game_rooms", filter: `id=eq.${roomId}` }, (payload: Change) => {
           const row = payload.new as Record<string, unknown>;
           if (row && "id" in row) setRoom((prev) => (prev ? { ...prev, ...pickRoom(row) } : prev));
         })
-        .on("postgres_changes", { event: "*", schema: "public", table: "room_players", filter: `room_id=eq.${roomId}` }, (payload) => {
-          const row = payload.new as GamePlayerRow | undefined;
+        .on("postgres_changes", { event: "*", schema: "public", table: "room_players", filter: `room_id=eq.${roomId}` }, (payload: Change) => {
+          const row = payload.new as unknown as GamePlayerRow | undefined;
           if (row && "player_id" in row) setPlayers((prev) => upsertPlayer(prev, row));
         })
-        .on("postgres_changes", { event: "*", schema: "public", table: "room_rounds", filter: `room_id=eq.${roomId}` }, (payload) => {
-          const row = payload.new as GameRoundRow | undefined;
+        .on("postgres_changes", { event: "*", schema: "public", table: "room_rounds", filter: `room_id=eq.${roomId}` }, (payload: Change) => {
+          const row = payload.new as unknown as GameRoundRow | undefined;
           if (!row || !("round_index" in row)) return;
           setRound((prev) => newerRound(prev, row));
           if (row.closed_at) void fetchAnswers();
         })
-        .subscribe((status) => {
+        .subscribe((status: string) => {
           const ok = status === "SUBSCRIBED";
           setLive(ok);
           if (ok) void refresh(); // Catch anything that changed before we were listening.
