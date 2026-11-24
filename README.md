@@ -2,7 +2,7 @@
 
 Quizzes, flashcards and live games for GCSE students, connected so that every answer helps decide what to study next.
 
-> **Status: Stage 3 in progress.** Accounts, revision quizzes, flashcards, progress, achievements, live multiplayer games and leaderboards are built and tested. AI study help and teacher classrooms come next. See [docs/STATUS.md](docs/STATUS.md).
+> **Status: Stage 3 in progress.** Accounts, revision quizzes, flashcards, progress, achievements, live multiplayer games, leaderboards, teacher classrooms and appearance settings are built and tested, with 54 GCSE topics. AI study help comes next. See [docs/STATUS.md](docs/STATUS.md).
 
 "Questlight" is a working name ([docs/BRAND.md](docs/BRAND.md)). Change it in `src/config/brand.ts`.
 

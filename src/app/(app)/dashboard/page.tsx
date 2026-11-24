@@ -130,16 +130,16 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           </h2>
           <LevelProgress progress={level} totalXp={student.profile.xp} />
           <dl className="mt-6 grid grid-cols-3 gap-px overflow-hidden rounded-lg bg-line">
-            <div className="min-w-0 bg-deep p-3 sm:p-4">
-              <dt className="text-xs text-ink-muted sm:text-sm">Answered</dt>
+            <div className="min-w-0 bg-deep px-3 py-3 xl:p-4">
+              <dt className="text-xs text-ink-muted xl:text-sm">Answered</dt>
               <dd className="tabular mt-1 text-2xl font-semibold">{questionsAnswered}</dd>
             </div>
-            <div className="min-w-0 bg-deep p-3 sm:p-4">
-              <dt className="text-xs text-ink-muted sm:text-sm">Topics</dt>
+            <div className="min-w-0 bg-deep px-3 py-3 xl:p-4">
+              <dt className="text-xs text-ink-muted xl:text-sm">Topics</dt>
               <dd className="tabular mt-1 text-2xl font-semibold">{progress.size}</dd>
             </div>
-            <div className="min-w-0 bg-deep p-3 sm:p-4">
-              <dt className="flex items-center gap-1 text-xs text-ink-muted sm:text-sm">
+            <div className="min-w-0 bg-deep px-3 py-3 xl:p-4">
+              <dt className="flex items-center gap-1 text-xs text-ink-muted xl:text-sm">
                 <Flame className={cn("h-3.5 w-3.5", streak > 0 && "text-caution")} aria-hidden /> Streak
               </dt>
               <dd className="tabular mt-1 text-2xl font-semibold">

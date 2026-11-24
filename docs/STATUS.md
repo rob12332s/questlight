@@ -75,7 +75,7 @@ Feature statuses shown on the site come from `src/config/features.ts`. Change on
 
 ### Known limitations
 - The question bank is small: about 8 questions per topic, 2 topics per subject. It needs expanding and reviewing by a teacher.
-- AI study and classrooms are not built yet. They are shown as "Soon" or "Later".
+- AI study is not built yet. They are shown as "Soon" or "Later".
 
 ## Stage 3 (part 1): live games
 
@@ -127,10 +127,46 @@ Feature statuses shown on the site come from `src/config/features.ts`. Change on
   - All three boards were checked at desktop and phone widths.
 - **Note:** accounts made before this change keep their previous setting (shown).
 
+## Stage 3 (part 3): classrooms, more content and appearance
+
+### Built
+- **Teacher classrooms (migration 0007):**
+  - Teachers create classes with a join code.
+  - Students join with the code (rate limited) and are told what their teacher and classmates will see.
+  - Teachers see each student's week (XP, quizzes, accuracy, last active). They can remove students, make a new code, and archive a class.
+  - Class-only live games, where the teacher hosts on the board and doesn't play.
+  - A weekly class leaderboard.
+  - Teacher accounts are set by the site owner (see [SETUP.md](SETUP.md)).
+- **Content:** 4 new topics per subject, so 54 topics and 432 original questions. Each topic has 8 questions: 6 multiple choice, 1 true/false and 1 typed answer.
+- **Multiple-choice quizzes (migration 0008):** quizzes can be "all question types" or "multiple choice only".
+- **Quiz setup redesign:** subject tiles, then topic cards showing your recent accuracy, then options, with a live summary of what you'll get.
+- **Appearance settings:**
+  - Theme: dark, light or match device. Accent colour: 5 choices.
+  - Text size: 3 sizes. Font: standard or easy to read (Atkinson Hyperlegible).
+  - Line spacing and reduced animation.
+  - Applied before the first paint and saved on the device.
+- **Visual pass:** subject colours, quick actions on the dashboard, a soft accent glow, and stronger progress and navigation states.
+
+### Tested (24 Nov 2026)
+- **Database suites:**
+  - classrooms: permissions, joining, privacy, overview, leaderboard, teacher-hosted games, code reset, removal, leaving, archiving and no direct writes;
+  - the question-type filter;
+  - the bank of 432 questions loads.
+- **Unit tests:** 190 pass, including bank validation for every new question and the appearance script.
+- **End-to-end (desktop and mobile):**
+  - a teacher creates a class, a student joins with the link, and the teacher runs a 5-round class game the student plays;
+  - the class leaderboard and teacher overview, an outsider blocked, and the student leaving;
+  - the redesigned quiz setup;
+  - a new check that app pages never scroll sideways, which caught and fixed a real bug.
+- **Live site:**
+  - migrations 0004 (re-run for new content), 0007 and 0008 applied and checked: 54 topics, 432 questions, none missing answers;
+  - a multiple-choice-only quiz on a new topic, played through;
+  - light theme, teal accent and larger text checked, then reset to default.
+
 ## Next
 1. An AI study assistant that only switches on when an API key is configured.
-2. Teacher classrooms (class codes, class-only games, class leaderboards).
-3. More questions, reviewed by a teacher.
+2. Teachers setting work: assign a topic quiz to a class with a due date.
+3. More questions per topic, reviewed by a teacher.
 
 ## Needs adult and professional review before use with schools or before payments
 - UK GDPR and the ICO Children's Code: a DPIA, lawful basis, retention periods, and the privacy notice wording.

@@ -57,3 +57,19 @@ Checked November 2026. Confirm on the providers' pricing pages before launch.
 
 **AI providers**
 - Usage is billed per token, so costs grow with use. The daily caps in `src/config/plans.ts` are the main cost control.
+
+
+## Make an account a teacher
+
+Teacher accounts can create classes and host class games. They are set by the site owner, never chosen at sign-up, so students can trust who runs a class.
+
+1. Ask the teacher to sign up normally.
+2. In Supabase, open **SQL Editor** and run, with their email:
+
+   ```sql
+   update public.profiles set account_type = 'teacher'
+   where id = (select id from auth.users where email = 'teacher@school.example');
+   ```
+3. They refresh the site and see **Classes you teach** on the Classes page.
+
+To undo it, run the same statement with `'student'`.
