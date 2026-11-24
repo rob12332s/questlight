@@ -37,19 +37,11 @@ jobs:
         run: npm test
       # A throwaway local Supabase (Postgres + Auth + REST + Realtime) with every
       # migration applied, so end-to-end tests exercise the real backend.
-      # Looking up the latest CLI uses the GitHub API, which is sometimes rate limited:
-      # if the first attempt fails, wait and try once more.
+      # Pinned: asking for "latest" needs the GitHub API, which is often rate limited on
+      # shared runners. 3.3.0 is the version these tests were last verified with.
       - uses: supabase/setup-cli@v1
-        id: supabase-cli
-        continue-on-error: true
         with:
-          version: latest
-      - if: steps.supabase-cli.outcome == 'failure'
-        run: sleep 45
-      - if: steps.supabase-cli.outcome == 'failure'
-        uses: supabase/setup-cli@v1
-        with:
-          version: latest
+          version: 3.3.0
       - run: supabase --version
       - name: Start local Supabase
         run: supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor,postgres-meta,storage-api
