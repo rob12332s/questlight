@@ -38,7 +38,7 @@ function NavLink({ item, onNavigate }: { item: NavItem; onNavigate?: () => void 
       aria-current={active ? "page" : undefined}
       className={cn(
         "relative flex h-10 items-center gap-3 rounded-md px-3 text-[0.9375rem] transition-colors",
-        active ? "bg-slate text-ink" : "text-ink-soft hover:bg-slate/60 hover:text-ink",
+        active ? "bg-beam-wash text-ink" : "text-ink-soft hover:bg-slate/60 hover:text-ink",
       )}
     >
       {active && (
@@ -48,7 +48,7 @@ function NavLink({ item, onNavigate }: { item: NavItem; onNavigate?: () => void 
           transition={{ type: "spring", stiffness: 500, damping: 40 }}
         />
       )}
-      <Icon className="h-[18px] w-[18px] shrink-0" aria-hidden strokeWidth={1.75} />
+      <Icon className={cn("h-[18px] w-[18px] shrink-0", active && "text-beam-bright")} aria-hidden strokeWidth={1.75} />
       {item.label}
     </Link>
   );

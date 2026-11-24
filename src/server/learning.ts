@@ -10,6 +10,8 @@ export interface TopicSummary {
   name: string;
   description: string | null;
   questionCount: number;
+  /** Published multiple-choice questions, for "multiple choice only" quizzes. */
+  multipleChoiceCount: number;
   byDifficulty: Record<Difficulty, number>;
 }
 
@@ -43,14 +45,16 @@ export const getCurriculum = cache(async (): Promise<SubjectWithTopics[]> => {
       .select("id, subject_id, slug, name, description")
       .eq("education_stage", "gcse")
       .order("sort_order"),
-    supabase.from("questions").select("topic_id, difficulty").eq("is_published", true),
+    supabase.from("questions").select("topic_id, difficulty, question_type").eq("is_published", true),
   ]);
 
   const counts = new Map<string, Record<Difficulty, number>>();
-  for (const q of (questionsRes.data ?? []) as Array<{ topic_id: string; difficulty: Difficulty }>) {
+  const mcCounts = new Map<string, number>();
+  for (const q of (questionsRes.data ?? []) as Array<{ topic_id: string; difficulty: Difficulty; question_type: string }>) {
     const entry = counts.get(q.topic_id) ?? { foundation: 0, standard: 0, challenge: 0 };
     entry[q.difficulty] += 1;
     counts.set(q.topic_id, entry);
+    if (q.question_type === "multiple_choice") mcCounts.set(q.topic_id, (mcCounts.get(q.topic_id) ?? 0) + 1);
   }
 
   const topics = (topicsRes.data ?? []) as Array<{
@@ -74,6 +78,7 @@ export const getCurriculum = cache(async (): Promise<SubjectWithTopics[]> => {
             name: t.name,
             description: t.description,
             byDifficulty,
+            multipleChoiceCount: mcCounts.get(t.id) ?? 0,
             questionCount: byDifficulty.foundation + byDifficulty.standard + byDifficulty.challenge,
           };
         }),

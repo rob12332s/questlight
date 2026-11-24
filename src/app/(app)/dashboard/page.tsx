@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
-import { ArrowRight, Check, Circle, Flame } from "lucide-react";
+import { ArrowRight, Check, Circle, Flame, Layers, ListChecks, Swords, Trophy } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { SubjectIcon } from "@/components/subject-icon";
 import { ButtonLink } from "@/components/ui/button";
+import { subjectStyle } from "@/config/subject-theme";
 import { FormAlert } from "@/components/ui/form";
 import { currentStreak, levelFromXp } from "@/domain/progression";
 import { recommendNext, type TopicFacts } from "@/domain/recommendations";
@@ -72,10 +73,17 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     { done: recent.length > 0, label: "Finish your first quiz", href: "/quizzes" },
   ];
   const showSteps = steps.some((s) => !s.done);
+  const slugByName = new Map(curriculum.map((s) => [s.name, s.slug]));
+  const actions = [
+    { href: "/quizzes", label: "Revise a topic", hint: "Quiz with explanations", icon: ListChecks },
+    { href: "/play", label: "Play live", hint: "Same questions, same time", icon: Swords },
+    { href: "/flashcards", label: "Review flashcards", hint: "Spaced repetition", icon: Layers },
+    { href: "/leaderboards", label: "Leaderboards", hint: "This week's top XP", icon: Trophy },
+  ];
   const stage = student.profile.education_stage;
 
   return (
-    <div>
+    <div className="room-glow">
       {passwordUpdated !== undefined && (
         <div className="mb-6">
           <FormAlert tone="success">Your new password is saved.</FormAlert>
@@ -90,11 +98,32 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           </p>
         </div>
         <ButtonLink href="/quizzes" size="lg">
-          Start a quiz
+          Start a quiz <ArrowRight className="h-4 w-4" aria-hidden />
         </ButtonLink>
       </header>
 
-      <div className="mt-10 grid gap-6 lg:grid-cols-[1.2fr_1fr]">
+      <nav aria-label="Quick actions" className="mt-8 animate-enter">
+        <ul className="grid grid-cols-2 gap-2.5 lg:grid-cols-4">
+          {actions.map((a) => (
+            <li key={a.href}>
+              <Link
+                href={a.href}
+                className="group flex h-full items-center gap-3 rounded-xl border border-line bg-deep/70 p-3.5 backdrop-blur-sm transition-[border-color,background-color,transform] duration-300 hover:-translate-y-0.5 hover:border-beam/40 hover:bg-deep"
+              >
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-beam-wash text-beam-bright transition-transform duration-300 group-hover:scale-105">
+                  <a.icon className="h-5 w-5" aria-hidden strokeWidth={1.75} />
+                </span>
+                <span className="min-w-0">
+                  <span className="block truncate text-[0.9375rem] font-medium">{a.label}</span>
+                  <span className="block truncate text-xs text-ink-muted">{a.hint}</span>
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
+
+      <div className="mt-6 grid gap-6 lg:grid-cols-[1.2fr_1fr]">
         <section aria-labelledby="progress-heading" className="animate-enter rounded-xl border border-line bg-deep p-6 [animation-delay:60ms]">
           <h2 id="progress-heading" className="sr-only">
             Your progress
@@ -194,18 +223,24 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
               <li key={`${rec.kind}-${rec.topicId}`}>
                 <Link
                   href={`/quizzes?topic=${rec.topicId}`}
-                  className="group flex h-full flex-col rounded-xl border border-line p-5 transition-[border-color,transform] duration-300 hover:-translate-y-0.5 hover:border-line-strong"
+                  style={subjectStyle(slugByName.get(rec.subjectName) ?? "")}
+                  className="group flex h-full flex-col rounded-xl border border-line bg-deep/60 p-5 transition-[border-color,transform] duration-300 hover:-translate-y-0.5 hover:border-line-strong"
                 >
-                  <span
-                    className={cn(
-                      "self-start rounded-sm px-2 py-0.5 text-xs",
-                      rec.kind === "revisit_weak" ? "bg-incorrect/15 text-incorrect" : "bg-beam-wash text-beam-bright",
-                    )}
-                  >
-                    {KIND_LABEL[rec.kind]}
+                  <span className="flex items-center justify-between gap-3">
+                    <span className="subject-chip flex h-9 w-9 items-center justify-center rounded-lg">
+                      <SubjectIcon slug={slugByName.get(rec.subjectName) ?? ""} className="h-[18px] w-[18px]" />
+                    </span>
+                    <span
+                      className={cn(
+                        "rounded-sm px-2 py-0.5 text-xs",
+                        rec.kind === "revisit_weak" ? "bg-incorrect/15 text-incorrect" : "bg-beam-wash text-beam-bright",
+                      )}
+                    >
+                      {KIND_LABEL[rec.kind]}
+                    </span>
                   </span>
-                  <span className="mt-3 font-medium">{rec.topicName}</span>
-                  <span className="text-sm text-ink-muted">{rec.subjectName}</span>
+                  <span className="mt-4 font-medium">{rec.topicName}</span>
+                  <span className="subject-text text-sm">{rec.subjectName}</span>
                   <span className="mt-2 flex-1 text-sm text-ink-soft">{rec.reason}</span>
                   <span className="mt-4 inline-flex items-center gap-1 text-sm text-beam-bright">
                     Practise
@@ -241,8 +276,14 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           <ul className="mt-4 grid gap-px overflow-hidden rounded-xl bg-line sm:grid-cols-2 lg:grid-cols-3">
             {subjects.map((subject) => (
               <li key={subject.slug}>
-                <Link href={`/learn#${subject.slug}`} className="flex items-center gap-3 bg-night p-4 transition-colors hover:bg-deep">
-                  <SubjectIcon slug={subject.slug} className="h-5 w-5 text-ink-muted" />
+                <Link
+                  href={`/learn#${subject.slug}`}
+                  style={subjectStyle(subject.slug)}
+                  className="flex items-center gap-3 bg-night p-4 transition-colors hover:bg-deep"
+                >
+                  <span className="subject-chip flex h-9 w-9 items-center justify-center rounded-lg">
+                    <SubjectIcon slug={subject.slug} className="h-[18px] w-[18px]" />
+                  </span>
                   <span className="flex-1">{subject.name}</span>
                   <span className="text-xs text-ink-muted">{subject.topics.length} topics</span>
                 </Link>

@@ -63,8 +63,10 @@ test("a student signs up, studies, and their data stays private", async ({ brows
 
   // ── Take a 5-question quiz ───────────────────────────────────────────────
   await page.goto("/quizzes");
-  await page.getByLabel("Topic").selectOption({ label: "Cell biology (8 questions)" });
-  await page.getByText("5", { exact: true }).click();
+  await page.getByRole("radio", { name: /^Biology/ }).check({ force: true });
+  await page.getByRole("radio", { name: /^Cell biology/ }).check({ force: true });
+  await page.getByRole("radio", { name: "5", exact: true }).check({ force: true });
+  await expect(page.getByText(/5 questions on/)).toBeVisible();
   await page.getByRole("button", { name: "Start quiz" }).click();
   await expect(page).toHaveURL(/\/quizzes\/[0-9a-f-]{36}$/);
   const quizUrl = page.url();

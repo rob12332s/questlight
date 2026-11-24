@@ -231,3 +231,163 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* ── Appearance settings (src/lib/appearance.ts) ─────────────────────────────
+   A script in <head> sets data-* attributes on <html> before the first paint.
+   These rules sit outside Tailwind's layers, so they override the theme tokens. */
+
+/* Reduced motion chosen in settings, not only by the operating system */
+:root[data-motion="reduced"] *,
+:root[data-motion="reduced"] *::before,
+:root[data-motion="reduced"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* Text size scales every rem-based size together */
+:root[data-text="large"] {
+  font-size: 112.5%;
+}
+:root[data-text="larger"] {
+  font-size: 125%;
+}
+
+/* A typeface designed for legibility, with a little more room between letters */
+:root[data-font="readable"] {
+  --font-sans: var(--font-readable), ui-sans-serif, system-ui, sans-serif;
+}
+:root[data-font="readable"] body {
+  letter-spacing: 0.012em;
+}
+
+/* Relaxed spacing: taller lines for easier tracking */
+:root[data-spacing="relaxed"] body {
+  line-height: 1.85;
+}
+:root[data-spacing="relaxed"] p,
+:root[data-spacing="relaxed"] li {
+  line-height: 1.85;
+}
+
+/* Light theme: the same room, in daylight. Paper becomes white with a hairline edge. */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --color-night: #f3f5fa;
+  --color-deep: #ffffff;
+  --color-slate: #e9edf5;
+  --color-slate-raised: #dde3ee;
+  --color-line: rgb(21 27 43 / 0.1);
+  --color-line-strong: rgb(21 27 43 / 0.2);
+  --color-ink: #121827;
+  --color-ink-soft: #465069;
+  --color-ink-muted: #646d86;
+  --color-paper: #ffffff;
+  --color-paper-line: #d9dee9;
+  --shadow-paper: 0 0 0 1px rgb(21 27 43 / 0.08), 0 14px 32px -16px rgb(21 27 43 / 0.25);
+  --shadow-raised: 0 0 0 1px rgb(21 27 43 / 0.06), 0 10px 28px -18px rgb(21 27 43 / 0.3);
+  --color-caution: #a86a0c;
+}
+
+/* Accent colours. Light-theme values are deeper so text and buttons keep their contrast. */
+:root[data-accent="teal"] {
+  --color-beam: #2ec4b6;
+  --color-beam-bright: #62d9cd;
+  --color-beam-deep: #1f9e93;
+  --color-beam-wash: rgb(46 196 182 / 0.14);
+}
+:root[data-accent="rose"] {
+  --color-beam: #f472a6;
+  --color-beam-bright: #f797be;
+  --color-beam-deep: #db4f88;
+  --color-beam-wash: rgb(244 114 166 / 0.14);
+}
+:root[data-accent="amber"] {
+  --color-beam: #f5b041;
+  --color-beam-bright: #f8c56d;
+  --color-beam-deep: #d8952a;
+  --color-beam-wash: rgb(245 176 65 / 0.14);
+}
+:root[data-accent="green"] {
+  --color-beam: #6fcf80;
+  --color-beam-bright: #94dca0;
+  --color-beam-deep: #46b35a;
+  --color-beam-wash: rgb(111 207 128 / 0.14);
+}
+:root[data-theme="light"][data-accent="indigo"],
+:root[data-theme="light"]:not([data-accent]) {
+  --color-beam: #535be0;
+  --color-beam-bright: #3f46c4;
+  --color-beam-deep: #3a41b8;
+  --color-beam-wash: rgb(83 91 224 / 0.1);
+}
+:root[data-theme="light"][data-accent="teal"] {
+  --color-beam: #12857b;
+  --color-beam-bright: #0d6c64;
+  --color-beam-deep: #0b5f58;
+  --color-beam-wash: rgb(18 133 123 / 0.1);
+}
+:root[data-theme="light"][data-accent="rose"] {
+  --color-beam: #c2386f;
+  --color-beam-bright: #a52d5d;
+  --color-beam-deep: #952853;
+  --color-beam-wash: rgb(194 56 111 / 0.1);
+}
+:root[data-theme="light"][data-accent="amber"] {
+  --color-beam: #96600a;
+  --color-beam-bright: #7c4f08;
+  --color-beam-deep: #6e4607;
+  --color-beam-wash: rgb(150 96 10 / 0.1);
+}
+:root[data-theme="light"][data-accent="green"] {
+  --color-beam: #2b7a3b;
+  --color-beam-bright: #22642f;
+  --color-beam-deep: #1e5829;
+  --color-beam-wash: rgb(43 122 59 / 0.1);
+}
+
+/* ── Subject colours ─────────────────────────────────────────────────────────
+   Each subject sets --s-dark and --s-light inline (src/config/subject-theme.ts). */
+.subject-text {
+  color: var(--s-dark);
+}
+.subject-chip {
+  color: var(--s-dark);
+  background-color: color-mix(in oklab, var(--s-dark) 16%, transparent);
+}
+.subject-fill {
+  background-color: var(--s-dark);
+}
+.subject-ring {
+  box-shadow: inset 0 0 0 1.5px var(--s-dark);
+}
+:root[data-theme="light"] .subject-text {
+  color: var(--s-light);
+}
+:root[data-theme="light"] .subject-chip {
+  color: var(--s-light);
+  background-color: color-mix(in oklab, var(--s-light) 12%, transparent);
+}
+:root[data-theme="light"] .subject-fill {
+  background-color: var(--s-light);
+}
+:root[data-theme="light"] .subject-ring {
+  box-shadow: inset 0 0 0 1.5px var(--s-light);
+}
+
+/* ── The room's light: one soft glow of the accent behind the top of each app page */
+.room-glow {
+  position: relative;
+  isolation: isolate;
+}
+.room-glow::before {
+  content: "";
+  position: absolute;
+  inset: -6rem -4rem auto;
+  height: 22rem;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(60% 70% at 30% 0%, var(--color-beam-wash), transparent 70%);
+  filter: blur(8px);
+}

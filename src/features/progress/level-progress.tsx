@@ -24,14 +24,14 @@ export function LevelProgress({ progress, totalXp }: { progress: Progress; total
       <div className="flex items-end justify-between gap-4">
         <div>
           <p className="text-sm text-ink-muted">Level</p>
-          <p className="tabular text-4xl font-semibold">{progress.level}</p>
+          <p className="tabular bg-linear-to-br from-ink to-beam-bright bg-clip-text text-5xl font-semibold text-transparent">{progress.level}</p>
         </div>
         <p className="tabular text-right text-sm text-ink-soft">
           <motion.span>{rounded}</motion.span> XP
         </p>
       </div>
       <div
-        className="mt-4 h-2 overflow-hidden rounded-full bg-slate"
+        className="mt-4 h-2.5 overflow-hidden rounded-full bg-slate"
         role="progressbar"
         aria-label={`Progress to level ${progress.level + 1}`}
         aria-valuemin={0}
@@ -39,7 +39,7 @@ export function LevelProgress({ progress, totalXp }: { progress: Progress; total
         aria-valuenow={progress.xpIntoLevel}
       >
         <motion.div
-          className="h-full origin-left rounded-full bg-beam"
+          className="h-full origin-left rounded-full bg-linear-to-r from-beam-deep via-beam to-beam-bright shadow-[0_0_18px_-2px_var(--color-beam)]"
           initial={{ scaleX: reduceMotion ? progress.progress : 0 }}
           animate={{ scaleX: progress.progress }}
           transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}

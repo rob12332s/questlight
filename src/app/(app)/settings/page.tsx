@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { AppearanceSettings } from "@/features/settings/appearance-settings";
 import { DeleteAccountForm, ProfileForm, SubjectsForm } from "@/features/settings/settings-forms";
 import { hasServiceRoleKey } from "@/lib/env";
 import { getServerSupabase } from "@/lib/supabase/server";
@@ -45,6 +46,14 @@ export default async function SettingsPage() {
             educationStage={student.profile.education_stage}
             showOnLeaderboards={student.profile.show_on_leaderboards}
           />
+        </Section>
+
+        <Section
+          id="appearance"
+          title="Appearance"
+          description="Make Questlight comfortable to read: theme, colour, text size, font, spacing and animation."
+        >
+          <AppearanceSettings />
         </Section>
 
         <Section id="subjects" title="Subjects" description="What you're studying. Used to focus quizzes and suggestions.">

@@ -32,6 +32,7 @@ const startSchema = z.object({
   topicId: z.string().uuid("Choose a topic."),
   difficulty: z.union([z.enum(DIFFICULTIES), z.literal("mixed")]),
   length: z.coerce.number().int().min(3).max(20),
+  types: z.enum(["all", "multiple_choice"]),
 });
 
 export interface StartQuizState {
@@ -46,6 +47,7 @@ export async function startQuiz(_prev: StartQuizState, formData: FormData): Prom
     topicId: formData.get("topicId"),
     difficulty: formData.get("difficulty") ?? "mixed",
     length: formData.get("length") ?? 10,
+    types: formData.get("types") ?? "all",
   });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Check your choices." };
 
@@ -54,6 +56,7 @@ export async function startQuiz(_prev: StartQuizState, formData: FormData): Prom
     p_topic: parsed.data.topicId,
     p_difficulty: parsed.data.difficulty === "mixed" ? null : parsed.data.difficulty,
     p_count: parsed.data.length,
+    p_types: parsed.data.types === "all" ? null : [parsed.data.types],
   });
   if (error || typeof data !== "string") return { error: quizError(error?.hint) };
   redirect(`/quizzes/${data}`);

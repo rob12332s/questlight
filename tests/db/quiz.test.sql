@@ -51,6 +51,17 @@ select tests.expect_error(format('select public.start_quiz(%L, null, 21)', :topi
 select tests.expect_error('select public.start_quiz(gen_random_uuid())', 'not_enough_questions');
 \echo '  ✓ quizzes need a signed-in student, a sensible length and enough questions'
 
+-- Question types: only multiple choice, or only short answer (too few here).
+select public.start_quiz(:topic, null, 5, null, array['multiple_choice']::public.question_type[]) as mc_only \gset
+select tests.assert(
+  (select bool_and(q.question_type = 'multiple_choice') from public.quiz_sessions s, unnest(s.question_ids) qid join public.questions q on q.id = qid where s.id = :'mc_only'),
+  'a multiple-choice-only quiz uses only multiple choice questions');
+select tests.expect_error(format('select public.start_quiz(%L, null, 5, null, array[%L]::public.question_type[])', :topic, 'short_answer'), 'not_enough_questions');
+reset role;
+delete from public.quiz_sessions where id = :'mc_only';
+select tests.login(:dave);
+\echo '  ✓ quizzes can be limited to chosen question types'
+
 -- ── Quiz one: 5 right, 1 wrong ───────────────────────────────────────────────
 select public.start_quiz(:topic, 'foundation', 6) as q1 \gset
 select tests.expect_error(format('select * from public.get_quiz_review(%L)', :'q1'), 'not_finished');

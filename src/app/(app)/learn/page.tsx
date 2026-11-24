@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Reveal } from "@/components/motion/reveal";
 import { SubjectIcon } from "@/components/subject-icon";
+import { subjectStyle } from "@/config/subject-theme";
 import { ButtonLink } from "@/components/ui/button";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { getCurriculum, getTopicProgress, MIN_ANSWERS_FOR_RECOMMENDATION } from "@/server/learning";
@@ -24,7 +25,7 @@ export default async function LearnPage() {
   const subjects = [...curriculum].sort((a, b) => Number(chosenIds.has(b.id)) - Number(chosenIds.has(a.id)));
 
   return (
-    <div>
+    <div className="room-glow">
       <h1 className="text-3xl font-semibold sm:text-4xl">Learn</h1>
       <p className="mt-2 max-w-xl text-ink-soft">
         GCSE topics, with your accuracy on each once you&apos;ve practised it.{" "}
@@ -40,9 +41,12 @@ export default async function LearnPage() {
           <a
             key={s.id}
             href={`#${s.slug}`}
-            className="inline-flex h-9 items-center gap-2 rounded-full border border-line px-3 text-sm text-ink-soft transition-colors hover:border-line-strong hover:text-ink"
+            style={subjectStyle(s.slug)}
+            className="inline-flex h-9 items-center gap-2 rounded-full border border-line bg-deep/60 pr-3.5 pl-1.5 text-sm text-ink-soft transition-colors hover:border-line-strong hover:text-ink"
           >
-            <SubjectIcon slug={s.slug} className="h-4 w-4" />
+            <span className="subject-chip flex h-6 w-6 items-center justify-center rounded-full">
+              <SubjectIcon slug={s.slug} className="h-3.5 w-3.5" />
+            </span>
             {s.name}
           </a>
         ))}
@@ -50,10 +54,18 @@ export default async function LearnPage() {
 
       <div className="mt-10 space-y-12">
         {subjects.map((subject) => (
-          <section key={subject.id} id={subject.slug} aria-labelledby={`${subject.slug}-h`} className="scroll-mt-24">
+          <section
+            key={subject.id}
+            id={subject.slug}
+            aria-labelledby={`${subject.slug}-h`}
+            className="scroll-mt-24"
+            style={subjectStyle(subject.slug)}
+          >
             <Reveal>
               <div className="flex items-center gap-3">
-                <SubjectIcon slug={subject.slug} className="h-5 w-5 text-ink-muted" />
+                <span className="subject-chip flex h-10 w-10 items-center justify-center rounded-lg">
+                  <SubjectIcon slug={subject.slug} className="h-5 w-5" />
+                </span>
                 <h2 id={`${subject.slug}-h`} className="text-xl font-semibold">
                   {subject.name}
                 </h2>
@@ -63,7 +75,7 @@ export default async function LearnPage() {
             {subject.topics.length === 0 ? (
               <p className="mt-4 text-sm text-ink-muted">Topics for this subject are being written.</p>
             ) : (
-              <ul className="mt-4 divide-y divide-line overflow-hidden rounded-xl border border-line">
+              <ul className="mt-4 divide-y divide-line overflow-hidden rounded-xl border border-line bg-deep/40">
                 {subject.topics.map((topic, i) => {
                   const p = progress.get(topic.id);
                   const enough = p && p.questionsAttempted >= MIN_ANSWERS_FOR_RECOMMENDATION;
@@ -84,7 +96,7 @@ export default async function LearnPage() {
                             </div>
                             <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-slate">
                               <div
-                                className="h-full rounded-full bg-beam transition-[width] duration-700"
+                                className="subject-fill h-full rounded-full transition-[width] duration-700"
                                 style={{ width: `${Math.round((enough ? p.mastery : accuracy) * 100)}%` }}
                               />
                             </div>

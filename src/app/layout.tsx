@@ -1,9 +1,19 @@
 import type { Metadata, Viewport } from "next";
-import { Schibsted_Grotesk } from "next/font/google";
+import { Atkinson_Hyperlegible, Schibsted_Grotesk } from "next/font/google";
+import { AppearanceProvider } from "@/components/appearance-provider";
 import { brand } from "@/config/brand";
+import { APPEARANCE_SCRIPT } from "@/lib/appearance";
 import "./globals.css";
 
 const sans = Schibsted_Grotesk({ subsets: ["latin"], variable: "--font-schibsted", display: "swap" });
+// Only downloaded when a student picks "Easy to read" in settings.
+const readable = Atkinson_Hyperlegible({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  variable: "--font-readable",
+  display: "swap",
+  preload: false,
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
@@ -17,7 +27,12 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en-GB" className={sans.variable}>
+    // The appearance script sets data-* attributes before React hydrates, so they differ
+    // from the server HTML on purpose.
+    <html lang="en-GB" className={`${sans.variable} ${readable.variable}`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: APPEARANCE_SCRIPT }} />
+      </head>
       <body className="min-h-dvh bg-night text-ink">
         <a
           href="#main"
@@ -25,7 +40,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         >
           Skip to content
         </a>
-        {children}
+        <AppearanceProvider>{children}</AppearanceProvider>
       </body>
     </html>
   );
