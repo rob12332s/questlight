@@ -3,6 +3,7 @@ import { Check } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { FEATURES } from "@/config/features";
+import { isAiConfigured } from "@/lib/env";
 
 export const metadata: Metadata = {
   title: "Features",
@@ -10,6 +11,8 @@ export const metadata: Metadata = {
 };
 
 export default function FeaturesPage() {
+  // AI study help is built, but needs the site owner's API key to run.
+  const aiEnabled = isAiConfigured(process.env);
   return (
     <div className="container-page py-16 sm:py-20">
       <header className="max-w-2xl">
@@ -25,7 +28,7 @@ export default function FeaturesPage() {
           <li key={feature.id} id={feature.id} className="grid gap-4 py-8 md:grid-cols-[16rem_1fr] md:gap-12">
             <div className="flex items-start justify-between gap-3 md:flex-col md:justify-start">
               <h2 className="text-xl font-semibold">{feature.name}</h2>
-              <StatusBadge status={feature.status} />
+              <StatusBadge status={feature.id === "ai-study" && !aiEnabled ? "needs_setup" : feature.status} />
             </div>
             <div>
               <p className="max-w-2xl text-ink-soft">{feature.summary}</p>

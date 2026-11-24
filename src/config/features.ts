@@ -62,13 +62,13 @@ export const FEATURES: FeatureEntry[] = [
   {
     id: "ai-study",
     name: "AI study help",
-    summary: "Ask about a concept, get it explained at your level, and generate practice questions or flashcards on it.",
+    summary: "Ask about a concept, get it explained at your level, and generate practice questions or flashcards on it. Switched on by the site owner.",
     details: [
       "Every AI answer is checked against a strict format before you see it",
-      "AI content is always labelled and can be reported",
+      "AI content is always labelled, and AI practice never counts towards XP",
       "Daily limits keep it fair and affordable",
     ],
-    status: "planned",
+    status: "available",
   },
   {
     id: "classrooms",

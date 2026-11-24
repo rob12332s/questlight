@@ -13,7 +13,8 @@ export interface PublicEnv {
 }
 
 export interface AiConfig {
-  provider: AiProvider;
+  /** "mock" is a deterministic stand-in, only allowed when AI_ALLOW_MOCK=1 (tests). */
+  provider: AiProvider | "mock";
   apiKey: string;
   model: string | null;
   timeoutMs: number;
@@ -62,6 +63,10 @@ export function parseServiceRoleKey(source: Source): string {
  */
 export function parseAiConfig(source: Source): AiConfig | null {
   const provider = source.AI_PROVIDER?.trim().toLowerCase();
+  if (provider === "mock") {
+    if (source.AI_ALLOW_MOCK !== "1") throw new EnvError("AI_PROVIDER=mock is only for tests (set AI_ALLOW_MOCK=1).");
+    return { provider: "mock", apiKey: "mock", model: null, timeoutMs: 5_000 };
+  }
   const apiKey = source.AI_API_KEY?.trim();
   if (!provider || !apiKey) return null;
   if (!(AI_PROVIDERS as readonly string[]).includes(provider)) {
@@ -75,6 +80,15 @@ export function parseAiConfig(source: Source): AiConfig | null {
     model: source.AI_MODEL?.trim() || null,
     timeoutMs,
   };
+}
+
+/** True when AI study help can run. A misconfigured provider counts as off. */
+export function isAiConfigured(source: Source): boolean {
+  try {
+    return parseAiConfig(source) !== null;
+  } catch {
+    return false;
+  }
 }
 
 /** True when the public Supabase settings are present and valid. */

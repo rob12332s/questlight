@@ -10,7 +10,7 @@ import { logOut } from "@/features/auth/actions";
 import { cn } from "@/lib/cn";
 import { PRIMARY_NAV, SECONDARY_NAV, navStatus, type NavItem } from "./nav";
 
-function NavLink({ item, onNavigate }: { item: NavItem; onNavigate?: () => void }) {
+function NavLink({ item, onNavigate, aiEnabled }: { item: NavItem; onNavigate?: () => void; aiEnabled?: boolean }) {
   const pathname = usePathname();
   const status = navStatus(item);
   const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
@@ -49,18 +49,23 @@ function NavLink({ item, onNavigate }: { item: NavItem; onNavigate?: () => void 
         />
       )}
       <Icon className={cn("h-[18px] w-[18px] shrink-0", active && "text-beam-bright")} aria-hidden strokeWidth={1.75} />
-      {item.label}
+      <span className="flex-1">{item.label}</span>
+      {item.featureId === "ai-study" && !aiEnabled && (
+        <span className="text-xs text-ink-muted">
+          Off<span className="sr-only"> (not switched on for this site)</span>
+        </span>
+      )}
     </Link>
   );
 }
 
-function NavLists({ onNavigate }: { onNavigate?: () => void }) {
+function NavLists({ onNavigate, aiEnabled }: { onNavigate?: () => void; aiEnabled: boolean }) {
   return (
     <>
       <ul className="space-y-0.5">
         {PRIMARY_NAV.map((item) => (
           <li key={item.href}>
-            <NavLink item={item} onNavigate={onNavigate} />
+            <NavLink item={item} onNavigate={onNavigate} aiEnabled={aiEnabled} />
           </li>
         ))}
       </ul>
@@ -83,14 +88,14 @@ function NavLists({ onNavigate }: { onNavigate?: () => void }) {
 }
 
 /** Desktop sidebar. */
-export function Sidebar({ displayName }: { displayName: string }) {
+export function Sidebar({ displayName, aiEnabled }: { displayName: string; aiEnabled: boolean }) {
   return (
     <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-r border-line bg-deep px-4 py-5 lg:flex">
       <Link href="/dashboard" aria-label="Questlight dashboard" className="mb-8 rounded-sm px-2">
         <Logo />
       </Link>
       <nav aria-label="App" className="flex flex-1 flex-col">
-        <NavLists />
+        <NavLists aiEnabled={aiEnabled} />
       </nav>
       <p className="mt-4 truncate px-3 text-xs text-ink-muted">Signed in as {displayName}</p>
     </aside>
@@ -98,7 +103,7 @@ export function Sidebar({ displayName }: { displayName: string }) {
 }
 
 /** Mobile top bar with a slide-down menu. */
-export function MobileNav() {
+export function MobileNav({ aiEnabled }: { aiEnabled: boolean }) {
   const [open, setOpen] = useState(false);
   return (
     <div className="sticky top-0 z-40 border-b border-line bg-night/90 backdrop-blur-md lg:hidden">
@@ -129,7 +134,7 @@ export function MobileNav() {
             className="flex flex-col overflow-hidden px-4"
           >
             <div className="flex flex-col py-3">
-              <NavLists onNavigate={() => setOpen(false)} />
+              <NavLists onNavigate={() => setOpen(false)} aiEnabled={aiEnabled} />
             </div>
           </motion.nav>
         )}

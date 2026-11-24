@@ -52,6 +52,9 @@ jobs:
             echo "NEXT_PUBLIC_SITE_URL=http://localhost:3000"
             echo "E2E_WITH_SUPABASE=1"
             echo "E2E_DB_URL=${DB_URL}"
+            # A deterministic stand-in AI, so AI study is tested end to end with no key and no cost.
+            echo "AI_PROVIDER=mock"
+            echo "AI_ALLOW_MOCK=1"
           } >> "$GITHUB_ENV"
       - name: Build (includes type checking)
         run: npm run build

@@ -66,4 +66,13 @@ describe("configuration checks", () => {
     expect(hasServiceRoleKey({ SUPABASE_SERVICE_ROLE_KEY: " " })).toBe(false);
     expect(hasServiceRoleKey({ SUPABASE_SERVICE_ROLE_KEY: "secret" })).toBe(true);
   });
+
+  it("only allows the test stand-in AI when explicitly enabled", async () => {
+    const { parseAiConfig, isAiConfigured } = await import("@/lib/env");
+    expect(() => parseAiConfig({ AI_PROVIDER: "mock" })).toThrow();
+    expect(parseAiConfig({ AI_PROVIDER: "mock", AI_ALLOW_MOCK: "1" })?.provider).toBe("mock");
+    expect(isAiConfigured({})).toBe(false);
+    expect(isAiConfigured({ AI_PROVIDER: "mock" })).toBe(false);
+    expect(isAiConfigured({ AI_PROVIDER: "anthropic", AI_API_KEY: "k" })).toBe(true);
+  });
 });
