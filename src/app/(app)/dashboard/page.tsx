@@ -103,7 +103,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
       </header>
 
       <nav aria-label="Quick actions" className="mt-8 animate-enter">
-        <ul className="grid grid-cols-2 gap-2.5 lg:grid-cols-4">
+        <ul className="grid grid-cols-2 gap-2.5 xl:grid-cols-4">
           {actions.map((a) => (
             <li key={a.href}>
               <Link
@@ -114,8 +114,8 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                   <a.icon className="h-5 w-5" aria-hidden strokeWidth={1.75} />
                 </span>
                 <span className="min-w-0">
-                  <span className="block truncate text-[0.9375rem] font-medium">{a.label}</span>
-                  <span className="block truncate text-xs text-ink-muted">{a.hint}</span>
+                  <span className="block text-[0.9375rem] leading-tight font-medium">{a.label}</span>
+                  <span className="mt-0.5 block text-xs leading-snug text-ink-muted">{a.hint}</span>
                 </span>
               </Link>
             </li>
@@ -130,16 +130,16 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           </h2>
           <LevelProgress progress={level} totalXp={student.profile.xp} />
           <dl className="mt-6 grid grid-cols-3 gap-px overflow-hidden rounded-lg bg-line">
-            <div className="bg-deep p-4">
-              <dt className="text-sm text-ink-muted">Answered</dt>
+            <div className="min-w-0 bg-deep p-3 sm:p-4">
+              <dt className="text-xs text-ink-muted sm:text-sm">Answered</dt>
               <dd className="tabular mt-1 text-2xl font-semibold">{questionsAnswered}</dd>
             </div>
-            <div className="bg-deep p-4">
-              <dt className="text-sm text-ink-muted">Topics</dt>
+            <div className="min-w-0 bg-deep p-3 sm:p-4">
+              <dt className="text-xs text-ink-muted sm:text-sm">Topics</dt>
               <dd className="tabular mt-1 text-2xl font-semibold">{progress.size}</dd>
             </div>
-            <div className="bg-deep p-4">
-              <dt className="flex items-center gap-1 text-sm text-ink-muted">
+            <div className="min-w-0 bg-deep p-3 sm:p-4">
+              <dt className="flex items-center gap-1 text-xs text-ink-muted sm:text-sm">
                 <Flame className={cn("h-3.5 w-3.5", streak > 0 && "text-caution")} aria-hidden /> Streak
               </dt>
               <dd className="tabular mt-1 text-2xl font-semibold">

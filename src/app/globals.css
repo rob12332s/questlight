@@ -386,10 +386,10 @@
 .room-glow::before {
   content: "";
   position: absolute;
-  inset: -6rem 0 auto -4rem;
-  height: 22rem;
+  inset: -6rem 0 auto 0;
+  height: 24rem;
   z-index: -1;
   pointer-events: none;
-  background: radial-gradient(60% 70% at 30% 0%, var(--color-beam-wash), transparent 70%);
-  filter: blur(8px);
+  /* Centred and fading to nothing before the edges, so it never shows a hard line. */
+  background: radial-gradient(50% 100% at 50% 0%, var(--color-beam-wash), transparent);
 }

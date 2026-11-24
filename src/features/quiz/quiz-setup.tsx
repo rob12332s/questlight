@@ -108,7 +108,7 @@ export function QuizSetup({ subjects, initialTopicId }: { subjects: SetupSubject
                   <SubjectIcon slug={s.slug} className="h-5 w-5" />
                 </span>
                 <span className="min-w-0">
-                  <span className="block truncate text-[0.9375rem] font-medium">{s.name}</span>
+                  <span className="block text-[0.9375rem] leading-tight font-medium">{s.name}</span>
                   <span className="block text-xs text-ink-muted">
                     {s.topics.length} topics{s.isMine ? ", yours" : ""}
                   </span>
