@@ -44,9 +44,11 @@ export default function PrivacyPage() {
 
         <h2>Who can see what</h2>
         <p>
-          Other students can see your display name in games you join, and on leaderboards if you leave them switched
-          on. You can switch leaderboards off at any time. If you join a teacher&apos;s class, that teacher can see your
-          display name and your results in that class.
+          Other students can see your display name and score in live games you join. Leaderboards are off for new
+          accounts: your name only appears there if you choose to show it, and you can hide it again at any time. If you
+          join a teacher&apos;s class, that teacher can see your display name, your XP, quizzes and accuracy for the
+          week, when you were last active, and whether you have done work they set (with your best score). Your
+          classmates can see your display name and weekly XP on the class leaderboard. You can leave a class at any time.
         </p>
 
         <h2>Who processes your data</h2>
