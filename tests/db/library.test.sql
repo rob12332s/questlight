@@ -65,7 +65,10 @@ select tests.expect_error(format('insert into public.subscriptions (player_id, s
 select tests.expect_error('select public.simulate_subscription(''active'')', 'test_mode_off');
 select tests.assert(not public.has_pro(), 'no Pro without a subscription');
 
-set app.payments_test_mode = 'on';
+reset role;
+insert into public.private_settings values ('payments_test_mode', 'on');
+select tests.login(:lee);
+select tests.expect_error('select * from public.private_settings', '42501');
 select tests.assert((public.simulate_subscription('pending') ->> 'pro')::boolean = false, 'pending payment is not Pro');
 select tests.assert((public.simulate_subscription('failed') ->> 'pro')::boolean = false, 'a failed payment is not Pro');
 select tests.assert((public.simulate_subscription('active') ->> 'pro')::boolean, 'an active subscription is Pro');
@@ -78,7 +81,9 @@ select tests.expect_error('select public.open_lesson(''e2000000-0000-4000-8000-0
 select tests.assert((select count(*) = 5 and bool_and(test_mode) from public.subscription_events), 'every change is recorded and marked as test mode');
 select public.simulate_subscription('free');
 select tests.assert((select count(*) = 0 from public.subscriptions), 'back to free');
-reset app.payments_test_mode;
+reset role;
+delete from public.private_settings;
+select tests.login(:lee);
 \echo '  ✓ Pro states (pending, failed, active, cancelled, expired) behave correctly, in test mode only'
 
 -- ── Courses: board, tier, options on own subjects only ──────────────────────

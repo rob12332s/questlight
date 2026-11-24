@@ -11,8 +11,9 @@
 --   profile_subjects              + exam board, tier, set texts/options and confidence
 --
 -- Pro access is decided here, in the database, never by the browser.
--- Payments are not live: subscriptions can only be simulated where the database
--- setting app.payments_test_mode = 'on' (local and CI test databases only).
+-- Payments are not live: subscriptions can only be simulated where the row
+-- ('payments_test_mode', 'on') exists in private_settings (local and CI test databases
+-- only; it is never added to the live database).
 -- ════════════════════════════════════════════════════════════════════════════
 
 -- ── Boards and specifications ────────────────────────────────────────────────
@@ -301,9 +302,17 @@ begin
 end;
 $$;
 
+-- Settings only the database owner can change. No grants: invisible to the API.
+create table public.private_settings (
+  key text primary key check (key ~ '^[a-z_]{3,40}$'),
+  value text not null check (char_length(value) <= 200)
+);
+alter table public.private_settings enable row level security;
+revoke all on public.private_settings from public, anon, authenticated;
+
 -- Test mode only: lets a student move their own subscription through every state, so the
--- Pro experience can be tested without taking payments. Refuses unless the database
--- setting app.payments_test_mode is 'on', which is never set on the live database.
+-- Pro experience can be tested without taking payments. Refuses unless private_settings
+-- has payments_test_mode = 'on', which is never added to the live database.
 create function public.simulate_subscription(p_status text)
 returns jsonb
 language plpgsql
@@ -316,7 +325,7 @@ begin
   if uid is null then
     raise exception 'not signed in' using errcode = 'insufficient_privilege';
   end if;
-  if coalesce(current_setting('app.payments_test_mode', true), '') <> 'on' then
+  if not exists (select 1 from public.private_settings where key = 'payments_test_mode' and value = 'on') then
     raise exception 'payments are not live and test mode is off' using errcode = 'P0001', hint = 'test_mode_off';
   end if;
   if p_status is null or p_status not in ('active', 'pending', 'cancelled', 'expired', 'failed', 'free') then

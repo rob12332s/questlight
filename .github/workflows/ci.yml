@@ -61,9 +61,7 @@ jobs:
             # Pro is tested with simulated subscription states only; no payments exist.
             echo "PAYMENTS_TEST_MODE=1"
           } >> "$GITHUB_ENV"
-          # Settings apply to new connections, so make PostgREST reconnect.
-          psql "${DB_URL}" -c "alter database postgres set app.payments_test_mode = 'on'" \
-            -c "select pg_terminate_backend(pid) from pg_stat_activity where usename = 'authenticator' and pid <> pg_backend_pid()"
+          psql "${DB_URL}" -c "insert into public.private_settings values ('payments_test_mode', 'on')"
       - name: Build (includes type checking)
         run: npm run build
       - name: Install browser

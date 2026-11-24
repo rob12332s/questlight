@@ -11,7 +11,7 @@ const STATES = ["free", "active", "pending", "cancelled", "expired", "failed"] a
 /**
  * TEST MODE ONLY. Puts the signed-in student's own subscription into a chosen state so
  * Pro access can be tested without real payments. Needs PAYMENTS_TEST_MODE=1 here AND
- * the database setting app.payments_test_mode = 'on'; the database refuses otherwise.
+ * the test database's private_settings row payments_test_mode = 'on'; the database refuses otherwise.
  */
 export async function simulateSubscription(_prev: SimState, formData: FormData): Promise<SimState> {
   if (process.env.PAYMENTS_TEST_MODE !== "1") return { error: "Test mode is off on this site." };

@@ -45,7 +45,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   ]);
   const [courses, plan, library] = await Promise.all([getCourses(student.userId), getPlan(), getLibrary()]);
   const lessonCount = library.filter((t) => t.contentStatus === "lesson").length;
-  const coursesSet = courses.size > 0 && [...courses.values()].every((c) => c.board);
+  const boardsMissing = courses.size > 0 && [...courses.values()].some((c) => !c.board);
   const now = serverNowMs();
   const pendingWork = ((workResult.data ?? []) as Array<{
     assignment_id: string;
@@ -89,7 +89,6 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const steps = [
     { done: true, label: "Create your account" },
     { done: subjects.length > 0, label: "Choose your subjects", href: "/settings#subjects" },
-    { done: coursesSet, label: "Add your exam boards and tiers", href: "/settings#courses" },
     { done: recent.length > 0, label: "Finish your first quiz", href: "/quizzes" },
   ];
   const showSteps = steps.some((s) => !s.done);
@@ -121,6 +120,16 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           Open the Exam Coach <ArrowRight className="h-4 w-4" aria-hidden />
         </ButtonLink>
       </header>
+
+      {boardsMissing && (
+        <Link
+          href="/settings#courses"
+          className="mt-6 flex items-center gap-3 rounded-xl border border-beam/30 px-4 py-3 text-sm text-ink-soft hover:border-beam hover:text-ink"
+        >
+          <ArrowRight className="h-4 w-4 text-beam-bright" aria-hidden />
+          Add your exam board and tier for each subject, so the Exam Coach matches your course.
+        </Link>
+      )}
 
       <section aria-labelledby="coach-heading" className="mt-8 grid animate-enter gap-3 sm:grid-cols-2">
         <Link
