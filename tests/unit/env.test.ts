@@ -43,9 +43,10 @@ describe("parseAiConfig", () => {
 });
 
 describe("plan limits", () => {
-  it("falls back to free for inactive or unknown plans", () => {
-    expect(getPlanLimits("student_pro")).toBe(PLAN_LIMITS.free);
+  it("falls back to free for unknown plans", () => {
+    expect(getPlanLimits("pro")).toBe(PLAN_LIMITS.pro);
     expect(getPlanLimits(null)).toBe(PLAN_LIMITS.free);
+    expect(getPlanLimits(undefined)).toBe(PLAN_LIMITS.free);
   });
 
   it("never offers unlimited AI", () => {

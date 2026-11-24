@@ -61,6 +61,10 @@ create table public.library_topics (
   -- planned: listed in the library, content being written
   content_status text not null default 'planned' check (content_status in ('lesson', 'practice', 'planned')),
   quiz_topic_id uuid references public.topics (id) on delete set null,
+  -- Separate-science-only content (not in Combined Science); 'all' otherwise.
+  qualification text not null default 'all' check (qualification in ('all', 'separate_only')),
+  -- Set texts and history options: shown to students who chose this option.
+  option_key text check (option_key ~ '^[a-z0-9]+(-[a-z0-9]+)*$'),
   is_published boolean not null default true,
   sort_order integer not null default 0,
   updated_at timestamptz not null default now(),
@@ -158,6 +162,22 @@ as $$
         or (s.status = 'cancelled' and s.current_period_end > now())
       )
   );
+$$;
+
+-- AI allowances now depend on the plan. Free numbers are unchanged from 0009; both sets
+-- mirror PLAN_LIMITS in src/config/plans.ts (a unit test checks they match).
+create or replace function public.ai_limits()
+returns jsonb
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select case when public.has_pro(auth.uid()) then
+    jsonb_build_object('explanation', 100, 'questions', 150, 'questions_per_request', 10, 'flashcards', 25)
+  else
+    jsonb_build_object('explanation', 20, 'questions', 30, 'questions_per_request', 10, 'flashcards', 5)
+  end;
 $$;
 
 create function public.my_plan()

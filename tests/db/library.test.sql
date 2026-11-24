@@ -24,11 +24,12 @@ insert into public.library_topics (id, subject_id, slug, area, title, objective,
   ('e2000000-0000-4000-8000-000000000002', :'maths', 'planned', 'Algebra', 'Planned topic', 'Being written for later', 'A skill', 'general', 'awaiting_verification', 'free', 'planned', true),
   ('e2000000-0000-4000-8000-000000000003', :'maths', 'hidden', 'Algebra', 'Hidden topic', 'Not published yet at all', 'A skill', 'general', 'awaiting_verification', 'free', 'lesson', false);
 insert into public.lessons (topic_id, content, status)
-select id, '{"summary":"secret lesson body"}', 'published' from public.library_topics where slug <> 'planned';
+select id, '{"summary":"secret lesson body"}', 'published' from public.library_topics where id::text like 'e_000000-%' and slug <> 'planned';
 
 -- ── The catalogue is public; lessons are not ────────────────────────────────
 select tests.login_anon();
-select tests.assert((select count(*) = 9 from public.library_topics), 'anyone can browse published topics (not the hidden one)');
+select tests.assert((select count(*) = 9 from public.library_topics where id::text like 'e_000000-%'), 'anyone can browse published topics (not the hidden one)');
+select tests.assert((select count(*) >= 800 from public.library_topics), 'the GCSE library is loaded');
 select tests.expect_error('select * from public.lessons', '42501');
 select tests.assert((select count(*) >= 20 from public.specifications), 'specifications are listed');
 select tests.expect_error('select public.open_lesson(''e1000000-0000-4000-8000-000000000001'')', '42501');
@@ -97,7 +98,7 @@ select tests.expect_error(format('update public.profiles set is_content_admin = 
 select tests.expect_error('select public.admin_update_topic(''e2000000-0000-4000-8000-000000000002'', ''verified'', ''free'', ''lesson'', true)', 'not_admin');
 select tests.expect_error('select public.admin_get_lesson(''e1000000-0000-4000-8000-000000000001'')', 'not_admin');
 select tests.login(:ada);
-select tests.assert((select count(*) = 10 from public.library_topics), 'admins see unpublished topics too');
+select tests.assert((select count(*) = 10 from public.library_topics where id::text like 'e_000000-%'), 'admins see unpublished topics too');
 select tests.assert(public.admin_save_lesson('e2000000-0000-4000-8000-000000000002', '{"summary":"new"}', 'in_review') = 1, 'admins save a draft for review');
 select tests.assert((select content_status = 'planned' from public.library_topics where slug = 'planned'), 'a lesson in review doesn''t go live');
 select tests.assert(public.admin_save_lesson('e2000000-0000-4000-8000-000000000002', '{"summary":"new v2"}', 'published') = 2, 'publishing bumps the version');
@@ -106,4 +107,14 @@ select public.admin_update_topic('e2000000-0000-4000-8000-000000000002', 'verifi
 select tests.assert((select verification = 'verified' and access = 'pro' from public.library_topics where slug = 'planned'), 'admins change labels and access');
 select tests.expect_error('select public.admin_update_topic(''e2000000-0000-4000-8000-000000000002'', ''sort of'', ''pro'', ''lesson'', true)', '23514');
 \echo '  ✓ only content admins review, publish and relabel content'
+
+-- ── The generated catalogue ─────────────────────────────────────────────────
+reset role;
+select tests.assert((select bool_and(n >= 100) from (select count(*) n from public.library_topics t join public.subjects s on s.id = t.subject_id where t.id::text not like 'e_000000-%' group by s.slug) x), 'every subject has 100+ topics');
+select tests.assert((select count(*) >= 25 from public.library_topics where content_status = 'lesson'), 'published lessons are marked as lessons');
+select tests.assert((select count(*) > 0 from public.library_topics where content_status = 'practice' and quiz_topic_id is not null), 'quiz-linked topics are marked as practice');
+select tests.assert((select count(*) = 0 from public.library_topics where coverage = 'board_specific' and cardinality(boards) = 0), 'board-specific topics always name a board');
+select tests.login(:ada);
+select tests.assert(public.open_lesson((select id from public.library_topics where slug = 'linear-equations')) -> 'content' ? 'worked', 'a generated free lesson opens');
+\echo '  ✓ the generated library loads with 100+ topics per subject'
 \echo '  ✓ library tests passed'
