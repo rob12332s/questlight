@@ -2,7 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { FormAlert, SubmitButton } from "@/components/ui/form";
-import { createClass, joinClass, type ClassFormState } from "./actions";
+import { createClass, joinClass, setWork, type ClassFormState } from "./actions";
 
 export function JoinClassForm({ initialCode }: { initialCode?: string }) {
   const [state, action] = useActionState<ClassFormState, FormData>(joinClass, {});
@@ -57,6 +57,63 @@ export function CreateClassForm() {
         />
       </div>
       <SubmitButton pendingLabel="Creating…">Create class</SubmitButton>
+    </form>
+  );
+}
+
+export function SetWorkForm({
+  classId,
+  subjects,
+  minDate,
+}: {
+  classId: string;
+  subjects: Array<{ id: string; name: string; topics: Array<{ id: string; name: string }> }>;
+  minDate: string;
+}) {
+  const [state, action] = useActionState<ClassFormState, FormData>(setWork, {});
+  return (
+    <form action={action} className="grid gap-4 sm:grid-cols-[1fr_11rem_auto] sm:items-end">
+      <input type="hidden" name="classId" value={classId} />
+      {state.error && (
+        <div className="sm:col-span-3">
+          <FormAlert tone="error">{state.error}</FormAlert>
+        </div>
+      )}
+      <div>
+        <label htmlFor="work-topic" className="block text-sm font-medium text-ink">
+          Topic quiz
+        </label>
+        <select
+          id="work-topic"
+          name="topicId"
+          required
+          className="mt-2 block h-11 w-full rounded-md border border-line-strong bg-deep px-3 text-ink focus:border-beam focus:ring-2 focus:ring-beam/30 focus:outline-none"
+        >
+          {subjects.map((s) => (
+            <optgroup key={s.id} label={s.name}>
+              {s.topics.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.name}
+                </option>
+              ))}
+            </optgroup>
+          ))}
+        </select>
+      </div>
+      <div>
+        <label htmlFor="work-due" className="block text-sm font-medium text-ink">
+          Due by the end of
+        </label>
+        <input
+          id="work-due"
+          name="due"
+          type="date"
+          required
+          min={minDate}
+          className="mt-2 block h-11 w-full rounded-md border border-line-strong bg-deep px-3 text-ink [color-scheme:inherit] focus:border-beam focus:ring-2 focus:ring-beam/30 focus:outline-none"
+        />
+      </div>
+      <SubmitButton pendingLabel="Setting…">Set work</SubmitButton>
     </form>
   );
 }

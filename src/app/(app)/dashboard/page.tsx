@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
-import { ArrowRight, Check, Circle, Flame, Layers, ListChecks, Swords, Trophy } from "lucide-react";
+import { ArrowRight, Check, Circle, ClipboardList, Flame, Layers, ListChecks, Swords, Trophy } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { SubjectIcon } from "@/components/subject-icon";
 import { ButtonLink } from "@/components/ui/button";
 import { subjectStyle } from "@/config/subject-theme";
 import { FormAlert } from "@/components/ui/form";
+import { dueText } from "@/domain/due-dates";
 import { currentStreak, levelFromXp } from "@/domain/progression";
 import { recommendNext, type TopicFacts } from "@/domain/recommendations";
 import { EDUCATION_STAGE_LABELS } from "@/domain/types";
@@ -14,6 +15,7 @@ import { cn } from "@/lib/cn";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { getActivityDays, getCurriculum, getRecentQuizzes, getTopicProgress, todayInLondon } from "@/server/learning";
 import { getCurrentStudent } from "@/server/session";
+import { serverNowMs } from "@/server/time";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
@@ -31,13 +33,25 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const supabase = await getServerSupabase();
 
   // Everything here comes from the student's own rows (RLS-scoped). Nothing is estimated.
-  const [chosenResult, curriculum, progress, recent, activityDays] = await Promise.all([
+  const [chosenResult, curriculum, progress, recent, activityDays, workResult] = await Promise.all([
     supabase.from("profile_subjects").select("subject_id").eq("profile_id", student.userId),
     getCurriculum(),
     getTopicProgress(student.userId),
     getRecentQuizzes(student.userId, 4),
     getActivityDays(student.userId),
+    supabase.rpc("get_my_assignments"),
   ]);
+  const now = serverNowMs();
+  const pendingWork = ((workResult.data ?? []) as Array<{
+    assignment_id: string;
+    class_name: string;
+    topic_id: string;
+    title: string;
+    due_at: string;
+    done: boolean;
+  }>)
+    .filter((w) => !w.done)
+    .slice(0, 3);
   const chosenIds = new Set(((chosenResult.data ?? []) as Array<{ subject_id: string }>).map((r) => r.subject_id));
   const subjects = curriculum.filter((s) => chosenIds.has(s.id));
   const level = levelFromXp(student.profile.xp);
@@ -122,6 +136,29 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           ))}
         </ul>
       </nav>
+
+      {pendingWork.length > 0 && (
+        <section aria-labelledby="work-heading" className="mt-6 animate-enter rounded-xl border border-beam/30 bg-beam-wash p-5">
+          <h2 id="work-heading" className="flex items-center gap-2 font-semibold">
+            <ClipboardList className="h-4 w-4 text-beam-bright" aria-hidden /> Set by your teacher
+          </h2>
+          <ul className="mt-3 divide-y divide-line">
+            {pendingWork.map((w) => (
+              <li key={w.assignment_id} className="flex items-center justify-between gap-4 py-2.5">
+                <span className="min-w-0">
+                  <span className="block font-medium">{w.title}</span>
+                  <span className={cn("block text-sm", Date.parse(w.due_at) <= now ? "text-caution" : "text-ink-soft")}>
+                    {dueText(w.due_at, now)}, {w.class_name}
+                  </span>
+                </span>
+                <ButtonLink href={`/quizzes?topic=${w.topic_id}`} size="sm">
+                  Start
+                </ButtonLink>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1.2fr_1fr]">
         <section aria-labelledby="progress-heading" className="animate-enter rounded-xl border border-line bg-deep p-6 [animation-delay:60ms]">

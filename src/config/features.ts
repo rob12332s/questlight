@@ -73,10 +73,10 @@ export const FEATURES: FeatureEntry[] = [
   {
     id: "classrooms",
     name: "Classroom games",
-    summary: "Teachers create a class with a private code and host live games for it.",
+    summary: "Teachers create a class with a private code, host live games for it, and set topic quizzes with due dates.",
     details: [
       "Only class members can join a class game",
-      "Teachers see results by display name",
+      "Teachers see who has done the work set, and their best score",
       "Teacher accounts are verified, not self-selected",
     ],
     status: "available",

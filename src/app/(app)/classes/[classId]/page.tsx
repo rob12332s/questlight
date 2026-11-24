@@ -2,12 +2,15 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { FormAlert } from "@/components/ui/form";
-import { archiveClass, leaveClass, removeStudent, resetClassCode } from "@/features/classes/actions";
+import { dueText } from "@/domain/due-dates";
+import { archiveClass, leaveClass, removeStudent, removeWork, resetClassCode } from "@/features/classes/actions";
+import { SetWorkForm } from "@/features/classes/class-forms";
 import { CopyLinkButton, JoinRoomButton } from "@/features/classes/class-widgets";
 import { HostGameForm } from "@/features/play/play-forms";
 import { cn } from "@/lib/cn";
 import { getServerSupabase } from "@/lib/supabase/server";
-import { getCurriculum } from "@/server/learning";
+import { getCurriculum, todayInLondon } from "@/server/learning";
+import { serverNowMs } from "@/server/time";
 import { getCurrentStudent } from "@/server/session";
 
 export const metadata: Metadata = { title: "Class" };
@@ -27,6 +30,31 @@ interface GameRow {
   title: string;
   joined: boolean;
 }
+interface WorkRow {
+  assignment_id: string;
+  topic_id: string;
+  title: string;
+  due_at: string;
+  done_count: number;
+  student_count: number;
+}
+interface ProgressRow {
+  student_id: string;
+  display_name: string;
+  status: "done" | "late" | "not_started";
+  best_correct: number | null;
+  best_total: number | null;
+}
+interface MyWorkRow {
+  assignment_id: string;
+  classroom_id: string;
+  topic_id: string;
+  title: string;
+  due_at: string;
+  done: boolean;
+}
+const STATUS_TEXT = { done: "Done", late: "Done late", not_started: "Not done yet" } as const;
+
 interface OverviewRow {
   student_id: string;
   display_name: string;
@@ -47,9 +75,9 @@ export default async function ClassPage({
   searchParams,
 }: {
   params: Promise<{ classId: string }>;
-  searchParams: Promise<{ codeReset?: string }>;
+  searchParams: Promise<{ codeReset?: string; workSet?: string }>;
 }) {
-  const [{ classId }, { codeReset }] = await Promise.all([params, searchParams]);
+  const [{ classId }, { codeReset, workSet }] = await Promise.all([params, searchParams]);
   if (!UUID.test(classId)) notFound();
   const student = await getCurrentStudent();
   if (!student) redirect(`/login?next=/classes/${classId}`);
@@ -66,12 +94,25 @@ export default async function ClassPage({
   const isTeacher = c.teacher_id === student.userId;
   const archived = c.archived_at !== null;
 
-  const [{ data: board }, { data: games }, overviewRes, curriculum] = await Promise.all([
+  const [{ data: board }, { data: games }, overviewRes, curriculum, workRes] = await Promise.all([
     supabase.rpc("get_class_leaderboard", { p_class: classId }),
     supabase.rpc("get_class_games", { p_class: classId }),
     isTeacher ? supabase.rpc("get_classroom_overview", { p_class: classId }) : Promise.resolve({ data: null }),
     isTeacher && !archived ? getCurriculum() : Promise.resolve([]),
+    isTeacher ? supabase.rpc("get_class_assignments", { p_class: classId }) : supabase.rpc("get_my_assignments"),
   ]);
+  const now = serverNowMs();
+  const work = isTeacher ? ((workRes.data ?? []) as WorkRow[]).slice(0, 12) : [];
+  const myWork = isTeacher ? [] : ((workRes.data ?? []) as MyWorkRow[]).filter((w) => w.classroom_id === classId);
+  // Per-student progress for the teacher's current and recent work.
+  const progress = new Map<string, ProgressRow[]>(
+    await Promise.all(
+      work.map(async (w) => {
+        const { data } = await supabase.rpc("get_assignment_progress", { p_assignment: w.assignment_id });
+        return [w.assignment_id, (data ?? []) as ProgressRow[]] as const;
+      }),
+    ),
+  );
   const rows = (board ?? []) as BoardRow[];
   const openGames = (games ?? []) as GameRow[];
   const overview = (overviewRes.data ?? []) as OverviewRow[];
@@ -190,6 +231,78 @@ export default async function ClassPage({
             </section>
           )}
 
+          <section aria-labelledby="set-work-h" id="set-work" className="scroll-mt-24">
+            <h2 id="set-work-h" className="text-lg font-semibold">
+              Work set
+            </h2>
+            <p className="mt-1 text-sm text-ink-muted">
+              Set a topic quiz with a due date. A student has done it once they finish a quiz on that topic.
+            </p>
+            {workSet && (
+              <div className="mt-4">
+                <FormAlert tone="success">Work set. Students will see it on their dashboard and on this class page.</FormAlert>
+              </div>
+            )}
+            {!archived && (
+              <div className="mt-4 rounded-xl border border-line bg-deep p-5">
+                <SetWorkForm
+                  classId={c.id}
+                  minDate={todayInLondon()}
+                  subjects={curriculum
+                    .filter((s) => s.topics.length > 0)
+                    .map((s) => ({ id: s.id, name: s.name, topics: s.topics.map((t) => ({ id: t.id, name: t.name })) }))}
+                />
+              </div>
+            )}
+            {work.length > 0 && (
+              <ul className="mt-4 space-y-2">
+                {work.map((w) => {
+                  const rows = progress.get(w.assignment_id) ?? [];
+                  return (
+                    <li key={w.assignment_id}>
+                      <details className="group rounded-xl border border-line">
+                        <summary className="flex cursor-pointer list-none items-center gap-4 px-4 py-3">
+                          <span className="min-w-0 flex-1">
+                            <span className="block font-medium">{w.title}</span>
+                            <span className="block text-sm text-ink-muted">{dueText(w.due_at, now)}</span>
+                          </span>
+                          <span className="tabular text-sm">
+                            <span className="font-semibold">{w.done_count}</span>
+                            <span className="text-ink-muted"> of {w.student_count} done</span>
+                          </span>
+                        </summary>
+                        <div className="border-t border-line px-4 py-3">
+                          {rows.length === 0 ? (
+                            <p className="text-sm text-ink-muted">No students in the class yet.</p>
+                          ) : (
+                            <ul className="divide-y divide-line text-sm">
+                              {rows.map((r) => (
+                                <li key={r.student_id} className="flex items-center justify-between gap-3 py-2">
+                                  <span className="font-medium">{r.display_name}</span>
+                                  <span className={cn("tabular", r.status === "not_started" ? "text-ink-muted" : r.status === "late" ? "text-caution" : "text-correct")}>
+                                    {STATUS_TEXT[r.status]}
+                                    {r.best_total ? `, best ${r.best_correct}/${r.best_total}` : ""}
+                                  </span>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                          <form action={removeWork} className="mt-3">
+                            <input type="hidden" name="classId" value={c.id} />
+                            <input type="hidden" name="assignmentId" value={w.assignment_id} />
+                            <button type="submit" className="text-sm text-ink-muted underline-offset-4 hover:text-incorrect hover:underline">
+                              Remove this work
+                            </button>
+                          </form>
+                        </div>
+                      </details>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </section>
+
           <section aria-labelledby="students">
             <h2 id="students" className="text-lg font-semibold">
               Students <span className="tabular text-ink-soft">({overview.length})</span>
@@ -261,6 +374,36 @@ export default async function ClassPage({
         </div>
       ) : (
         <div className="mt-8 space-y-12">
+          <section aria-labelledby="my-work">
+            <h2 id="my-work" className="text-lg font-semibold">
+              Work set by your teacher
+            </h2>
+            {myWork.length === 0 ? (
+              <p className="mt-4 rounded-xl border border-dashed border-line-strong p-6 text-sm text-ink-soft">
+                Nothing set right now.
+              </p>
+            ) : (
+              <ul className="mt-4 divide-y divide-line rounded-xl border border-line">
+                {myWork.map((w) => (
+                  <li key={w.assignment_id} className="flex items-center justify-between gap-4 px-4 py-3">
+                    <span className="min-w-0">
+                      <span className="block font-medium">{w.title}</span>
+                      <span className={cn("block text-sm", w.done ? "text-correct" : Date.parse(w.due_at) <= now ? "text-caution" : "text-ink-muted")}>
+                        {w.done ? "Done" : dueText(w.due_at, now)}
+                      </span>
+                    </span>
+                    <Link
+                      href={`/quizzes?topic=${w.topic_id}`}
+                      className="shrink-0 text-sm font-medium text-beam-bright underline-offset-4 hover:underline"
+                    >
+                      {w.done ? "Practise again" : "Start quiz"}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+
           <section aria-labelledby="class-games">
             <h2 id="class-games" className="text-lg font-semibold">
               Class games

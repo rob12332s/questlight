@@ -103,3 +103,34 @@ export async function archiveClass(formData: FormData): Promise<void> {
   revalidatePath("/classes");
   redirect("/classes?archived=1");
 }
+
+export async function setWork(_prev: ClassFormState, formData: FormData): Promise<ClassFormState> {
+  await requireStudent("/classes");
+  const id = classId(formData);
+  const topicId = String(formData.get("topicId") ?? "");
+  const due = String(formData.get("due") ?? "");
+  if (!UUID.test(topicId)) return { error: "Choose a topic." };
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(due)) return { error: "Choose a due date." };
+  const supabase = await getServerSupabase();
+  const { error } = await supabase.rpc("create_assignment", { p_class: id, p_topic: topicId, p_due: due });
+  if (error) {
+    if (error.hint === "bad_due_date") return { error: "Choose a due date from today up to six months ahead." };
+    if (error.hint === "too_many") return { error: "This class already has 30 pieces of work due. Remove some first." };
+    if (error.hint === "archived") return { error: "This class is archived." };
+    return { error: "We couldn't set the work. Try again." };
+  }
+  revalidatePath(`/classes/${id}`);
+  redirect(`/classes/${id}?workSet=1#set-work`);
+}
+
+export async function removeWork(formData: FormData): Promise<void> {
+  await requireStudent("/classes");
+  const id = classId(formData);
+  const assignmentId = String(formData.get("assignmentId") ?? "");
+  if (UUID.test(assignmentId)) {
+    const supabase = await getServerSupabase();
+    await supabase.rpc("delete_assignment", { p_assignment: assignmentId });
+  }
+  revalidatePath(`/classes/${id}`);
+  redirect(`/classes/${id}#set-work`);
+}

@@ -74,6 +74,46 @@ test("a teacher runs a class game for their students", async ({ page, browser },
   await teacher.reload();
   await expect(teacher.getByRole("row", { name: /Class Student/ })).toBeVisible();
 
+  // ── Teacher sets work; the student sees it and does it ───────────────────
+  const due = new Date(Date.now() + 3 * 86_400_000).toISOString().slice(0, 10);
+  await teacher.getByLabel("Topic quiz").selectOption({ label: "Cell biology" });
+  await teacher.getByLabel("Due by the end of").fill(due);
+  await teacher.getByRole("button", { name: "Set work" }).click();
+  await expect(teacher.getByText(/Work set\. Students will see it/)).toBeVisible();
+  await expect(teacher.getByText("0 of 1 done")).toBeVisible();
+
+  await student.goto("/dashboard");
+  const setWork = student.getByRole("region", { name: "Set by your teacher" });
+  await expect(setWork.getByText("Cell biology")).toBeVisible();
+  await setWork.getByRole("link", { name: "Start" }).click();
+  await expect(student).toHaveURL(/\/quizzes\?topic=/);
+  await student.getByRole("radio", { name: "5", exact: true }).check({ force: true });
+  await student.getByRole("button", { name: "Start quiz" }).click();
+  await expect(student).toHaveURL(/\/quizzes\/[0-9a-f-]{36}$/);
+  let previousCard: string | null = null;
+  for (let i = 1; i <= 5; i++) {
+    await expect(student.getByText(`Question ${i} of 5`)).toBeVisible();
+    const card = student.locator('section[aria-labelledby^="q-"]');
+    await expect(card).toHaveCount(1);
+    if (previousCard) await expect(card).not.toHaveAttribute("aria-labelledby", previousCard);
+    previousCard = await card.getAttribute("aria-labelledby");
+    const textbox = student.getByPlaceholder("Type your answer");
+    if (await textbox.isVisible()) {
+      await textbox.fill("osmosis");
+      await student.getByRole("button", { name: "Check answer" }).click();
+    } else {
+      await student.getByRole("group", { name: "Answer options" }).getByRole("button").first().click();
+    }
+    const next = student.getByRole("button", { name: i < 5 ? "Next question" : "See results" });
+    await expect(next).toBeVisible({ timeout: 15_000 });
+    await next.click();
+  }
+  await expect(student.getByRole("heading", { name: "Cell biology: results" })).toBeVisible();
+  await student.goto(classUrl);
+  await expect(student.getByRole("region", { name: "Work set by your teacher" }).getByText("Done", { exact: true })).toBeVisible();
+  await teacher.reload();
+  await expect(teacher.getByText("1 of 1 done")).toBeVisible();
+
   // ── Teacher hosts a class game ───────────────────────────────────────────
   await teacher.getByLabel("Questions from").selectOption({ label: "All of Physics" });
   await teacher.getByText("5", { exact: true }).click();
