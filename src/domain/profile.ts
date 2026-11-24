@@ -2,13 +2,15 @@
  * Display-name rules. Mirrors public.is_valid_display_name() in the database, which
  * is the authority; this copy lets forms explain problems before submitting.
  */
+import { isAcceptableDisplayName } from "./name-filter";
+
 export const DISPLAY_NAME_RULES = {
   min: 3,
   max: 24,
   pattern: /^[A-Za-z0-9][A-Za-z0-9 _.-]{1,22}[A-Za-z0-9]$/,
 } as const;
 
-export type DisplayNameProblem = "too_short" | "too_long" | "bad_characters" | "bad_edges" | "double_space";
+export type DisplayNameProblem = "too_short" | "too_long" | "bad_characters" | "bad_edges" | "double_space" | "not_allowed";
 
 export function displayNameProblem(raw: string): DisplayNameProblem | null {
   const name = raw.trim();
@@ -17,6 +19,7 @@ export function displayNameProblem(raw: string): DisplayNameProblem | null {
   if (/[^A-Za-z0-9 _.-]/.test(name)) return "bad_characters";
   if (/\s{2,}/.test(name)) return "double_space";
   if (!DISPLAY_NAME_RULES.pattern.test(name)) return "bad_edges";
+  if (!isAcceptableDisplayName(name)) return "not_allowed";
   return null;
 }
 
@@ -26,6 +29,7 @@ export const DISPLAY_NAME_MESSAGES: Record<DisplayNameProblem, string> = {
   bad_characters: "Use letters, numbers, spaces, dots, dashes or underscores.",
   bad_edges: "Start and end with a letter or number.",
   double_space: "Use single spaces only.",
+  not_allowed: "Choose a different name. Other students can see it, so it needs to be friendly.",
 };
 
 /**

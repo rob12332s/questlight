@@ -95,8 +95,12 @@ export const FEATURES: FeatureEntry[] = [
   {
     id: "leaderboards",
     name: "Leaderboards",
-    summary: "Weekly and all-time rankings by display name, with a switch to stay off them.",
-    details: ["Display names only, never real names", "Opt out at any time in settings", "Friends and class boards"],
-    status: "planned",
+    summary: "This week, all time, and the people you've played live games with. You only appear if you choose to.",
+    details: [
+      "Display names only, never real names, with offensive names refused",
+      "Hidden by default; switch your name on or off at any time",
+      "See where you'd place even while hidden",
+    ],
+    status: "available",
   },
 ];

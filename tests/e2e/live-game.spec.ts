@@ -95,7 +95,22 @@ test("two students play a live game together", async ({ page, browser }, testInf
     await expect(p.getByRole("list", { name: "Final standings" }).getByRole("listitem")).toHaveCount(2);
   }
 
-  // A finished game no longer shows as open.
+  // ── Leaderboards: hidden by default, opt in, "played with" ───────────────
+  await friend.goto("/leaderboards");
+  await expect(friend.getByText("Your name is hidden")).toBeVisible();
+  await expect(friend.getByText("Hidden from other students")).toBeVisible();
+  await friend.getByRole("button", { name: "Show my name" }).click();
+  await expect(friend.getByText("Your name is hidden")).toHaveCount(0);
+  await expect(friend.getByRole("button", { name: "Hide my name" })).toBeVisible();
+
+  await host.goto("/leaderboards?board=played_with");
+  await host.getByRole("button", { name: "Show my name" }).click();
+  await expect(host).toHaveURL(/board=played_with/);
+  const board = host.getByRole("list").filter({ hasText: "Game Host" });
+  await expect(board.getByText("Game Friend")).toBeVisible();
+  await expect(board.getByText("(you)")).toBeVisible();
+
+    // A finished game no longer shows as open.
   await friend.goto("/play");
   await expect(friend.getByRole("heading", { name: "Your open games" })).toHaveCount(0);
 
