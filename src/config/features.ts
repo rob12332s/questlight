@@ -79,7 +79,7 @@ export const FEATURES: FeatureEntry[] = [
       "Teachers see results by display name",
       "Teacher accounts are verified, not self-selected",
     ],
-    status: "planned",
+    status: "available",
   },
   {
     id: "progression",

@@ -19,7 +19,7 @@ export default async function GamePage({ params }: { params: Promise<{ roomId: s
   // RLS: members only. Someone who isn't in the room (or has left) gets "not found".
   const { data: roomData } = await supabase
     .from("game_rooms")
-    .select("id, room_code, host_id, status, current_round, question_count, seconds_per_question, subjects(name), topics(name)")
+    .select("id, room_code, host_id, host_plays, status, current_round, question_count, seconds_per_question, subjects(name), topics(name)")
     .eq("id", roomId)
     .maybeSingle();
   if (!roomData) notFound();

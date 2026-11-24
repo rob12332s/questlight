@@ -2,6 +2,7 @@ import {
   BookOpenCheck,
   Brain,
   Gauge,
+  GraduationCap,
   Layers,
   ListChecks,
   Medal,
@@ -28,6 +29,7 @@ export const PRIMARY_NAV: NavItem[] = [
   { href: "/flashcards", label: "Flashcards", icon: Layers, featureId: "flashcards" },
   { href: "/ai-study", label: "AI study", icon: Brain, featureId: "ai-study" },
   { href: "/play", label: "Multiplayer", icon: Swords, featureId: "live-games" },
+  { href: "/classes", label: "Classes", icon: GraduationCap, featureId: "classrooms" },
   { href: "/leaderboards", label: "Leaderboards", icon: Trophy, featureId: "leaderboards" },
   { href: "/achievements", label: "Achievements", icon: Medal, featureId: "progression" },
 ];

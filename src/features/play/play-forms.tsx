@@ -54,7 +54,7 @@ export function JoinGameForm({ initialCode }: { initialCode?: string }) {
   );
 }
 
-export function HostGameForm({ subjects }: { subjects: SubjectChoice[] }) {
+export function HostGameForm({ subjects, classroomId }: { subjects: SubjectChoice[]; classroomId?: string }) {
   const [state, action] = useActionState<PlayFormState, FormData>(createGame, {});
   const [difficulty, setDifficulty] = useState<(typeof DIFFICULTY_CHOICES)[number]["value"]>("mixed");
   const [count, setCount] = useState<(typeof COUNTS)[number]>(10);
@@ -64,6 +64,7 @@ export function HostGameForm({ subjects }: { subjects: SubjectChoice[] }) {
   return (
     <form action={action} className="space-y-6">
       {state.error && <FormAlert tone="error">{state.error}</FormAlert>}
+      {classroomId && <input type="hidden" name="classroomId" value={classroomId} />}
       <div>
         <label htmlFor="scope" className="block text-sm font-medium text-ink">
           Questions from
@@ -107,7 +108,7 @@ export function HostGameForm({ subjects }: { subjects: SubjectChoice[] }) {
         A single topic has up to 7 live questions, so a 10-question game on one topic will be shorter.
       </p>
       <SubmitButton pendingLabel="Creating…" size="lg" className="w-full sm:w-auto">
-        Create game
+        {classroomId ? "Create class game" : "Create game"}
       </SubmitButton>
     </form>
   );

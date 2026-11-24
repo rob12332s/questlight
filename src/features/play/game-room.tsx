@@ -30,7 +30,7 @@ import { gameErrorMessage } from "./messages";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 type Change = RealtimePostgresChangesPayload<Record<string, unknown>>;
-const ROOM_COLUMNS = "id, room_code, host_id, status, current_round, question_count, seconds_per_question";
+const ROOM_COLUMNS = "id, room_code, host_id, host_plays, status, current_round, question_count, seconds_per_question";
 const PLAYER_COLUMNS = "player_id, display_name, score, correct_count, total_correct_ms, connection_status";
 const ROUND_COLUMNS =
   "round_index, question_text, options, started_at, deadline_at, closed_at, correct_option, explanation, answers_received";
@@ -46,7 +46,7 @@ interface Initial {
 
 function pickRoom(row: Record<string, unknown>): Partial<GameRoomRow> {
   const out: Partial<GameRoomRow> = {};
-  for (const key of ["id", "room_code", "host_id", "status", "current_round", "question_count", "seconds_per_question"] as const) {
+  for (const key of ["id", "room_code", "host_id", "host_plays", "status", "current_round", "question_count", "seconds_per_question"] as const) {
     if (key in row) (out as Record<string, unknown>)[key] = row[key];
   }
   return out;
@@ -184,6 +184,8 @@ export function GameRoom({
   const phase: GamePhase =
     serverNow === 0 && (rawPhase.kind === "countdown" || rawPhase.kind === "question") ? { kind: "loading" } : rawPhase;
   const isHost = room?.host_id === userId;
+  // A teacher hosting a class game watches and runs it, but doesn't answer.
+  const spectator = Boolean(isHost && room && !room.host_plays);
   const activePlayers = players.filter((p) => p.connection_status !== "left");
   const timeUp = phase.kind === "question" && phase.msLeft === 0;
 
@@ -238,7 +240,7 @@ export function GameRoom({
 
   const answer = useCallback(
     async (option: string) => {
-      if (!round || answers[round.round_index] || phase.kind !== "question" || timeUp) return;
+      if (spectator || !round || answers[round.round_index] || phase.kind !== "question" || timeUp) return;
       const r = round.round_index;
       setError(null);
       setAnswers((prev) => ({ ...prev, [r]: { option } }));
@@ -252,7 +254,7 @@ export function GameRoom({
         setError(gameErrorMessage(err.hint));
       }
     },
-    [answers, phase.kind, roomId, round, setAnswers, supabase, timeUp],
+    [answers, phase.kind, roomId, round, setAnswers, spectator, supabase, timeUp],
   );
 
   if (!room || phase.kind === "closed") {
@@ -299,6 +301,7 @@ export function GameRoom({
                 players={activePlayers}
                 userId={userId}
                 isHost={isHost}
+                spectator={spectator}
                 busy={busy}
                 onStart={startGame}
                 onLeave={leave}
@@ -325,10 +328,12 @@ export function GameRoom({
                 phase={phase}
                 mine={answers[round.round_index]}
                 playerCount={activePlayers.length}
+                spectator={spectator}
                 onAnswer={answer}
               />
               {round.closed_at && (
                 <RevealFooter
+                  spectator={spectator}
                   round={round}
                   mine={answers[round.round_index]}
                   players={players}
@@ -408,6 +413,7 @@ function Lobby({
   players,
   userId,
   isHost,
+  spectator,
   busy,
   onStart,
   onLeave,
@@ -416,6 +422,7 @@ function Lobby({
   players: GamePlayerRow[];
   userId: string;
   isHost: boolean;
+  spectator: boolean;
   busy: boolean;
   onStart: () => void;
   onLeave: () => void;
@@ -423,6 +430,7 @@ function Lobby({
   const reduceMotion = useReducedMotion();
   const [copied, setCopied] = useState(false);
   const host = players.find((p) => p.player_id === room.host_id);
+  const needed = spectator ? 1 : 2;
 
   async function copy() {
     try {
@@ -460,7 +468,7 @@ function Lobby({
       <section aria-labelledby="players-heading" className="mt-8">
         <h2 id="players-heading" className="flex items-center gap-2 text-lg font-semibold">
           <Users className="h-4 w-4 text-ink-soft" aria-hidden />
-          Players <span className="tabular text-ink-soft">({players.length})</span>
+          {spectator ? "Students" : "Players"} <span className="tabular text-ink-soft">({players.length})</span>
         </h2>
         <ul className="mt-4 flex flex-wrap gap-2" aria-live="polite">
           <AnimatePresence initial={false}>
@@ -496,11 +504,15 @@ function Lobby({
       <div className="mt-8 flex flex-wrap items-center gap-4">
         {isHost ? (
           <>
-            <Button size="lg" onClick={onStart} disabled={busy || players.length < 2}>
+            <Button size="lg" onClick={onStart} disabled={busy || players.length < needed}>
               {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : null}
               Start game
             </Button>
-            {players.length < 2 && <p className="text-sm text-ink-muted">Waiting for at least one more player to join.</p>}
+            {players.length < needed && (
+              <p className="text-sm text-ink-muted">
+                {spectator ? "Waiting for students to join." : "Waiting for at least one more player to join."}
+              </p>
+            )}
           </>
         ) : (
           <p className="flex items-center gap-2 text-ink-soft">
@@ -558,6 +570,7 @@ function RoundView({
   phase,
   mine,
   playerCount,
+  spectator,
   onAnswer,
 }: {
   roomId: string;
@@ -565,6 +578,7 @@ function RoundView({
   phase: GamePhase;
   mine: MyAnswer | undefined;
   playerCount: number;
+  spectator: boolean;
   onAnswer: (option: string) => void;
 }) {
   const reduceMotion = useReducedMotion();
@@ -580,7 +594,7 @@ function RoundView({
 
   // Keys 1–4 answer, following the shown order.
   useEffect(() => {
-    if (!open || mine) return;
+    if (!open || mine || spectator) return;
     function onKey(event: KeyboardEvent) {
       if (event.metaKey || event.ctrlKey || event.altKey) return;
       const position = Number(event.key);
@@ -592,7 +606,7 @@ function RoundView({
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [mine, onAnswer, open, shown]);
+  }, [mine, onAnswer, open, shown, spectator]);
 
   return (
     <div>
@@ -632,14 +646,20 @@ function RoundView({
               option={option}
               label={OPTION_IDS[position]!}
               state={optionStateFor(option.id, round, mine)}
-              disabled={!open || Boolean(mine)}
+              disabled={spectator || !open || Boolean(mine)}
               onSelect={(id) => onAnswer(id)}
             />
           ))}
         </div>
         {!round.closed_at && (
           <p className="mt-4 text-sm text-paper-ink-soft" aria-live="polite">
-            {mine ? "Locked in. Waiting for everyone else…" : open ? "Tip: press 1–" + shown.length + " to answer" : "Time's up"}
+            {spectator
+              ? "Students answer on their own devices."
+              : mine
+                ? "Locked in. Waiting for everyone else…"
+                : open
+                  ? "Tip: press 1–" + shown.length + " to answer"
+                  : "Time's up"}
           </p>
         )}
       </section>
@@ -648,6 +668,7 @@ function RoundView({
 }
 
 function RevealFooter({
+  spectator,
   round,
   mine,
   players,
@@ -659,6 +680,7 @@ function RevealFooter({
   onNext,
   onFinal,
 }: {
+  spectator: boolean;
   round: GameRoundRow;
   mine: MyAnswer | undefined;
   players: GamePlayerRow[];
@@ -681,7 +703,12 @@ function RevealFooter({
     <div className="mt-5 space-y-6">
       <div className="rounded-xl border border-line bg-deep p-5" role="status">
         <p className="flex items-center gap-2 text-lg font-semibold">
-          {correct ? (
+          {spectator ? (
+            <>
+              <Check className="h-5 w-5 text-correct" aria-hidden strokeWidth={2.5} /> Answer:{" "}
+              {round.options.find((o) => o.id === round.correct_option)?.text ?? "not available"}
+            </>
+          ) : correct ? (
             <>
               <Check className="h-5 w-5 text-correct" aria-hidden strokeWidth={2.5} /> Correct
               {typeof mine?.points === "number" && <span className="tabular text-beam-bright">+{mine.points}</span>}

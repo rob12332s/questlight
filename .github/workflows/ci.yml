@@ -51,6 +51,7 @@ jobs:
             echo "SUPABASE_SERVICE_ROLE_KEY=${SECRET_KEY:-$SERVICE_ROLE_KEY}"
             echo "NEXT_PUBLIC_SITE_URL=http://localhost:3000"
             echo "E2E_WITH_SUPABASE=1"
+            echo "E2E_DB_URL=${DB_URL}"
           } >> "$GITHUB_ENV"
       - name: Build (includes type checking)
         run: npm run build

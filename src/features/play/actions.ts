@@ -19,6 +19,8 @@ const createSchema = z.object({
   difficulty: z.union([z.enum(DIFFICULTIES), z.literal("mixed")]),
   count: z.coerce.number().int().min(3).max(20),
   seconds: z.coerce.number().int().min(10).max(60),
+  // Set when a teacher hosts a game for one of their classes.
+  classroomId: z.string().uuid().optional(),
 });
 
 export async function createGame(_prev: PlayFormState, formData: FormData): Promise<PlayFormState> {
@@ -30,6 +32,7 @@ export async function createGame(_prev: PlayFormState, formData: FormData): Prom
     difficulty: formData.get("difficulty") ?? "mixed",
     count: formData.get("count") ?? 10,
     seconds: formData.get("seconds") ?? 20,
+    classroomId: formData.get("classroomId") || undefined,
   });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Check your choices." };
 
@@ -41,6 +44,7 @@ export async function createGame(_prev: PlayFormState, formData: FormData): Prom
     p_difficulty: parsed.data.difficulty === "mixed" ? null : parsed.data.difficulty,
     p_count: parsed.data.count,
     p_seconds: parsed.data.seconds,
+    p_classroom: parsed.data.classroomId ?? null,
   });
   const roomId = (data as { room_id?: string } | null)?.room_id;
   if (error || !roomId) return { error: gameErrorMessage(error?.hint) };

@@ -11,6 +11,8 @@ export interface GameRoomRow {
   id: string;
   room_code: string;
   host_id: string;
+  /** False for class games: the teacher hosts on the board and doesn't answer. */
+  host_plays: boolean;
   status: RoomStatus;
   current_round: number;
   question_count: number;

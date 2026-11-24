@@ -14,6 +14,7 @@ const room: GameRoomRow = {
   id: "r",
   room_code: "K7M2QX",
   host_id: "h",
+  host_plays: true,
   status: "in_progress",
   current_round: 0,
   question_count: 5,

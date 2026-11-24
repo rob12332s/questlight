@@ -41,6 +41,10 @@ export function gameErrorMessage(hint: string | undefined | null): string {
       return "This game isn't running any more.";
     case "not_found":
       return "We couldn't find that game. You may have left it.";
+    case "not_teacher":
+      return "Only the class's teacher can host a game for it.";
+    case "not_player":
+      return "You're hosting this game, so you don't answer.";
     case "still_open":
       return "This question is still open.";
     default:
