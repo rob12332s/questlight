@@ -155,7 +155,8 @@ export function validateLesson(input: unknown): string[] {
     if (!arr(q.markScheme) || q.markScheme.length < 1 || !q.markScheme.every((m) => obj(m) && str(m.point, 3, 400) && typeof m.marks === "number" && m.marks >= 1)) {
       p.push(`${where}: markScheme`);
     } else {
-      const total = q.markScheme.reduce((s, m) => s + (obj(m) ? (m.marks as number) : 0), 0);
+      let total = 0;
+      for (const m of q.markScheme) if (obj(m)) total += m.marks as number;
       if (total !== q.marks) p.push(`${where}: mark scheme totals ${total}, question is worth ${q.marks}`);
     }
     validateAnswer(q.answer, where, p);

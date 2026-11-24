@@ -89,7 +89,7 @@ export function topicMastery(topicId: string, all: Attempt[], now: number): Topi
   }
 
   // Improving: latest independent score is clearly above the first one.
-  const improving = ind.length >= 2 && pct(ind.at(-1)!) - pct(ind[0]) >= 0.15;
+  const improving = ind.length >= 2 && pct(ind.at(-1)!) - pct(ind[0]!) >= 0.15;
   const needsAnotherAttempt = last !== null && pct(last) < MASTERY_RULES.developingPct;
 
   if (!last) {
@@ -109,7 +109,7 @@ export function topicMastery(topicId: string, all: Attempt[], now: number): Topi
 
   let confirmed = false;
   if (lastStrong && successes.length >= 2) {
-    const first = successes[0];
+    const first = successes[0]!;
     const latest = successes.at(-1)!;
     const marks = successes.reduce((s, a) => s + a.marksAvailable, 0);
     confirmed = latest.at - first.at >= MASTERY_RULES.retestGapDays * DAY && marks >= MASTERY_RULES.minMasteryMarks;
@@ -191,9 +191,11 @@ export function recommendNext(topics: MapTopic[], mastery: Map<string, TopicMast
   if (next) recs.push({ topicId: next.id, action: "start", mode: "learn", priority: 30, reason: `Start something new: ${next.title} is next in your course.` });
   recs.sort((a, b) => b.priority - a.priority);
   const out = recs.slice(0, limit);
-  if (recurring[0] && out.length > 0) {
+  const top = out[0];
+  const common = recurring[0];
+  if (top && common) {
     // Attach the most common mistake to the top recommendation as an extra reason.
-    out[0] = { ...out[0], reason: `${out[0].reason} Watch out for: ${recurring[0].label.toLowerCase()} (${recurring[0].count} times recently).` };
+    out[0] = { ...top, reason: `${top.reason} Watch out for: ${common.label.toLowerCase()} (${common.count} times recently).` };
   }
   return out;
 }

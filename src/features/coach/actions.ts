@@ -46,8 +46,8 @@ export interface QuestionResult {
 function correctAnswerText(q: ExamQuestion): string | null {
   const a = q.answer;
   if (a.type === "numeric") return `${a.unit === "£" ? "£" : ""}${a.value}${a.unit && a.unit !== "£" ? ` ${a.unit}` : ""}`;
-  if (a.type === "choice") return a.options[a.correct];
-  if (a.type === "text") return a.accept[0];
+  if (a.type === "choice") return a.options[a.correct] ?? null;
+  if (a.type === "text") return a.accept[0] ?? null;
   return null;
 }
 

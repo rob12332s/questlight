@@ -263,8 +263,9 @@ function WorkedExample({ topicId, lesson, basePath, onDone }: CoachProps & { onD
   const revealed = worked.steps.slice(0, choice?.correct ? step + 1 : step).map((s) => s.reveal);
 
   function pick(i: number) {
-    if (choice?.correct) return;
+    if (choice?.correct || !current) return;
     const c = current.choices[i];
+    if (!c) return;
     setPicked(i);
     if (firstTry.length === step) setFirstTry((f) => [...f, c.correct]);
     if (!c.correct && c.tag) setMistakes((m) => [...m, c.tag!]);
@@ -456,14 +457,15 @@ function AnswerInput({
 function GuidedPractice({ topicId, lesson, basePath, onDone }: CoachProps & { onDone?: () => void }) {
   const [index, setIndex] = useState(0);
   const [results, setResults] = useState<{ correct: boolean; hints: number }[]>([]);
-  const done = index >= lesson.guided.length;
+  const question = lesson.guided[index];
+  const done = index >= lesson.guided.length || !question;
 
   function finishQuestion(correct: boolean, hints: number) {
     const next = [...results, { correct, hints }];
     setResults(next);
     setIndex(index + 1);
     if (next.length === lesson.guided.length) {
-      const got = lesson.guided.reduce((s, q, i) => s + (next[i].correct ? q.marks : 0), 0);
+      const got = lesson.guided.reduce((s, q, i) => s + (next[i]?.correct ? q.marks : 0), 0);
       const of = lesson.guided.reduce((s, q) => s + q.marks, 0);
       void recordPractice(topicId, "guided", got, of, []);
     }
@@ -501,7 +503,7 @@ function GuidedPractice({ topicId, lesson, basePath, onDone }: CoachProps & { on
   return (
     <GuidedQuestionCard
       key={index}
-      q={lesson.guided[index]}
+      q={question}
       number={index + 1}
       total={lesson.guided.length}
       onFinish={finishQuestion}
@@ -592,7 +594,7 @@ function IndependentTest({ topicId, lesson, aiEnabled, basePath, testMode }: Coa
   function submit(i: number) {
     setError(null);
     start(async () => {
-      const r = await checkExamAnswer(topicId, i, values[i]);
+      const r = await checkExamAnswer(topicId, i, values[i] ?? "");
       if ("error" in r) return setError(r.error);
       setChecked((c) => c.map((x, j) => (j === i ? r : x)));
       setTicks((t) => t.map((x, j) => (j === i ? r.markScheme.map(() => false) : x)));
@@ -602,7 +604,7 @@ function IndependentTest({ topicId, lesson, aiEnabled, basePath, testMode }: Coa
   function finish() {
     setError(null);
     start(async () => {
-      const r = await finishTest(topicId, testMode, exam.map((_, i) => ({ given: values[i], ticked: ticks[i] })));
+      const r = await finishTest(topicId, testMode, exam.map((_, i) => ({ given: values[i] ?? "", ticked: ticks[i] ?? [] })));
       if ("error" in r) return setError(r.error);
       setOutcome(r);
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -631,9 +633,9 @@ function IndependentTest({ topicId, lesson, aiEnabled, basePath, testMode }: Coa
             <div id={`${id}-label`} className="mt-2 mb-4 text-lg">
               <Prose text={q.question} />
             </div>
-            <AnswerInput answer={q.answer} value={values[i]} onChange={(v) => setValues((vs) => vs.map((x, j) => (j === i ? v : x)))} disabled={Boolean(r)} id={id} />
+            <AnswerInput answer={q.answer} value={values[i] ?? ""} onChange={(v) => setValues((vs) => vs.map((x, j) => (j === i ? v : x)))} disabled={Boolean(r)} id={id} />
             {!r && (
-              <Button className="mt-4" onClick={() => submit(i)} disabled={pending || values[i].trim() === ""}>
+              <Button className="mt-4" onClick={() => submit(i)} disabled={pending || (values[i] ?? "").trim() === ""}>
                 Submit answer
               </Button>
             )}
@@ -646,7 +648,7 @@ function IndependentTest({ topicId, lesson, aiEnabled, basePath, testMode }: Coa
                 )}
                 <MarkSchemeCheck
                   scheme={r.markScheme}
-                  ticks={ticks[i]}
+                  ticks={ticks[i] ?? []}
                   onToggle={(j) => setTicks((t) => t.map((x, k) => (k === i ? x.map((v, m) => (m === j ? !v : v)) : x)))}
                   mode={needsTicks ? (r.status === "self_check" ? "self" : "method") : "view"}
                 />
@@ -656,7 +658,7 @@ function IndependentTest({ topicId, lesson, aiEnabled, basePath, testMode }: Coa
                     <Prose text={r.modelAnswer} />
                   </div>
                 </details>
-                {r.status === "self_check" && aiEnabled && <AiFeedbackBox topicId={topicId} index={i} answer={values[i]} />}
+                {r.status === "self_check" && aiEnabled && <AiFeedbackBox topicId={topicId} index={i} answer={values[i] ?? ""} />}
               </motion.div>
             )}
           </Panel>
@@ -865,7 +867,8 @@ function Technique({ lesson, history, basePath }: { lesson: LessonView; history:
 
 function WhyLostMarks({ history, basePath }: { history: CoachProps["history"]; basePath: string }) {
   const tests = history.filter((h) => h.mode === "independent" || h.mode === "retest");
-  if (tests.length === 0) {
+  const last = tests[0];
+  if (!last) {
     return (
       <Panel>
         <SectionTitle>No exam-style attempts yet</SectionTitle>
@@ -876,7 +879,6 @@ function WhyLostMarks({ history, basePath }: { history: CoachProps["history"]; b
       </Panel>
     );
   }
-  const last = tests[0];
   const lostTags = last.mistakes.filter(isMistakeTag);
   return (
     <div className="space-y-5">
