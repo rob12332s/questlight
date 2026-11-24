@@ -71,7 +71,7 @@ describe("Exam Answer Coach lessons", () => {
       for (const q of [...l.guided, ...l.exam]) {
         const a = q.answer;
         if (a.type === "numeric") expect(markAnswer(a, String(a.value)).status).toBe("correct");
-        if (a.type === "text") expect(markAnswer(a, a.accept[0]).status).toBe("correct");
+        if (a.type === "text") expect(markAnswer(a, a.accept[0]!).status).toBe("correct");
         if (a.type === "choice") expect(markAnswer(a, a.correct).status).toBe("correct");
       }
     }
@@ -104,7 +104,7 @@ describe("Pro plan configuration", () => {
     const block = sql.slice(sql.indexOf("create or replace function public.ai_limits()"));
     const [pro, free] = [...block.matchAll(/jsonb_build_object\(([^)]*)\)/g)].slice(0, 2).map((m) => m[1]);
     const n = (s: string, k: string) => Number(s.match(new RegExp(`'${k}', (\\d+)`))?.[1]);
-    for (const [s, plan] of [[pro, PLAN_LIMITS.pro], [free, PLAN_LIMITS.free]] as const) {
+    for (const [s, plan] of [[pro ?? "", PLAN_LIMITS.pro], [free ?? "", PLAN_LIMITS.free]] as const) {
       expect(n(s, "explanation")).toBe(plan.aiExplanationsPerDay);
       expect(n(s, "questions")).toBe(plan.aiQuestionsPerDay);
       expect(n(s, "flashcards")).toBe(plan.aiFlashcardRequestsPerDay);

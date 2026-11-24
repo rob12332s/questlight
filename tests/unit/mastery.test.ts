@@ -60,8 +60,8 @@ describe("recommendations", () => {
     const topics = ["weak", "close", "new"].map((id) => ({ id, title: id, subject: "maths", skill: "calc" }));
     const mastery = new Map(topics.map((t) => [t.id, topicMastery(t.id, attempts, NOW)]));
     const recs = recommendNext(topics, mastery, []);
-    expect(recs[0].topicId).toBe("weak");
-    expect(recs[0].reason).toContain("1/6");
+    expect(recs[0]!.topicId).toBe("weak");
+    expect(recs[0]!.reason).toContain("1/6");
     expect(recs.some((r) => r.topicId === "new" && r.action === "start")).toBe(true);
   });
 });
@@ -71,7 +71,7 @@ describe("progress over time", () => {
     const attempts = [a("independent", 3, 4, 0), a("guided", 0, 4, 0), a("independent", 1, 4, 8)];
     const weeks = accuracyByWeek(attempts, 3, NOW);
     expect(weeks).toHaveLength(3);
-    expect(weeks[2].accuracy).toBe(0.75);
+    expect(weeks[2]!.accuracy).toBe(0.75);
     expect(accuracyBySkill(attempts, new Map([["t1", "calc"]]))[0]).toEqual({ skill: "calc", accuracy: 0.5, marks: 8 });
   });
 
